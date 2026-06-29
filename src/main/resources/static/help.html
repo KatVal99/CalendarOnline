@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aiuto Budget</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="pixelStarsLayer" class="pixel-stars-layer" aria-hidden="true"></div>
+<div class="container retro">
+    <header class="top-strip">
+        <div class="brand">Budget Club</div>
+        <div class="status-light blink">NYA ONLINE</div>
+    </header>
+    <marquee class="ticker" behavior="scroll" direction="left">guida rapida al budget club</marquee>
+
+    <div class="page-hero">
+        <h1>Aiuto</h1>
+        <p>Questa pagina spiega cos'è ogni sezione del progetto e come funziona la chiusura mensile.</p>
+    </div>
+
+    <nav class="menu90">
+        <a href="index.html">Dashboard</a>
+        <a href="operations.html">Operazioni</a>
+        <a href="report.html">Report</a>
+        <a href="help.html" class="active">Aiuto</a>
+    </nav>
+
+    <section class="card">
+        <h2>Sessione attiva</h2>
+        <div id="authUserBadge" class="auth-user-badge" hidden>
+            <span class="user-icon" aria-hidden="true"></span>
+            <span id="authUsernameLabel">utente</span>
+        </div>
+        <button id="logoutBtn" type="button" class="danger-btn">Logout</button>
+        <div id="authInfo" class="small-note"></div>
+    </section>
+
+    <section class="help-grid">
+        <article class="help-card">
+            <h3>Dashboard</h3>
+            <p>Mostra saldo corrente, calendario con eventi personali e ultimi movimenti registrati.</p>
+        </article>
+        <article class="help-card">
+            <h3>Operazioni</h3>
+            <p>Qui inserisci entrate, spese, abbonamenti, debiti e Flexia. Puoi anche eliminare gli elementi attivi.</p>
+        </article>
+        <article class="help-card">
+            <h3>Report</h3>
+            <p>Visualizza un grafico mensile con entrate e spese, più un riepilogo dei totali correnti.</p>
+        </article>
+        <article class="help-card">
+            <h3>Flexia</h3>
+            <p>La Flexia è un importo mensile impostato per un mese specifico: viene sottratto alla chiusura del mese relativo.</p>
+        </article>
+        <article class="help-card">
+            <h3>Debiti</h3>
+            <p>Ogni debito usa un importo mensile fisso per una durata in mesi. Puoi rimuoverlo manualmente prima della scadenza.</p>
+        </article>
+        <article class="help-card">
+            <h3>Abbonamenti</h3>
+            <p>Gli abbonamenti restano attivi finché non li elimini e vengono sottratti ad ogni chiusura mensile.</p>
+        </article>
+        <article class="help-card">
+            <h3>Chiusura automatica</h3>
+            <p>Il giorno 1 del mese il sistema sottrae Flexia, debiti attivi e abbonamenti dal saldo, una sola volta per mese.</p>
+        </article>
+        <article class="help-card">
+            <h3>Report email</h3>
+            <p>Alla chiusura mese viene tentato l'invio di un report email all'indirizzo collegato all'utente, se SMTP è configurato.</p>
+        </article>
+    </section>
+
+    <footer class="status-bar">
+        <span>Budget Club Engine v2.0 - help mode</span>
+        <span id="liveClock">--:--:--</span>
+    </footer>
+</div>
+<script src="common.js"></script>
+<script src="layout.js"></script>
+<script>if (!localStorage.getItem('budgetAuthHeader')) { window.location.href = 'login.html'; }</script>
+</body>
+</html>
+
