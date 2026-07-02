@@ -42,6 +42,7 @@
         <div class="total-box">
             Saldo attuale
             <strong id="balance">0.00 EUR</strong>
+            <div id="monthCloseStatus" class="month-close-status pending">⏳ Chiusura mese in verifica</div>
         </div>
         <div class="total-box">
             Totale abbonamenti attivi
@@ -77,7 +78,7 @@
             <button id="purgeMonthlyCloseBtn" class="danger-btn" style="background:#c41e3a;width:auto">🗑 Elimina chiusure mese dal saldo</button>
         </div>
         <div id="purgeInfo" class="small-note"></div>
-        <table>
+        <table class="compact-table">
             <thead>
             <tr>
                 <th>Data</th>
@@ -90,6 +91,13 @@
             </thead>
             <tbody id="ledgerBody"></tbody>
         </table>
+        <div class="pager-bar">
+            <div id="dashboardLedgerPagerInfo" class="pager-info"></div>
+            <div class="pager-actions">
+                <button id="dashboardLedgerPrevBtn" type="button" class="pager-btn">◀</button>
+                <button id="dashboardLedgerNextBtn" type="button" class="pager-btn">▶</button>
+            </div>
+        </div>
     </section>
 
     <footer class="status-bar">

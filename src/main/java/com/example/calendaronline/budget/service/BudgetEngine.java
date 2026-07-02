@@ -24,12 +24,14 @@ public class BudgetEngine {
 
     public DashboardSnapshot snapshot(List<BudgetEvent> events) {
         BigDecimal currentBalance = BigDecimal.ZERO;
+        YearMonth currentMonth = YearMonth.now();
         List<LedgerEntry> ledgerEntries = new ArrayList<>();
         Map<String, Subscription> subscriptions = new LinkedHashMap<>();
         Map<String, DebtPlan> debtPlans = new LinkedHashMap<>();
         Map<YearMonth, BigDecimal> flexiaByMonth = new HashMap<>();
         Map<String, BigDecimal> monthlyIncomes = new LinkedHashMap<>();
         Map<String, BigDecimal> monthlyExpenses = new LinkedHashMap<>();
+        boolean currentMonthClosed = false;
 
         List<BudgetEvent> orderedEvents = events == null
             ? List.of()
@@ -49,6 +51,10 @@ public class BudgetEngine {
                     BudgetEventType.INCOME, event.eventDate(),
                     monthlyIncomes, monthlyExpenses, event.eventId()
                 );
+                case BALANCE_CARRYOVER -> currentBalance = applyCarryover(
+                    currentBalance, ledgerEntries,
+                    event.amount(), event.description(), event.eventDate(), event.eventId()
+                );
                 case EXPENSE -> currentBalance = applyDelta(
                     currentBalance, ledgerEntries,
                     event.amount().negate(), event.description(),
@@ -61,11 +67,14 @@ public class BudgetEngine {
                 case FLEXIA_REMOVED -> flexiaByMonth.remove(YearMonth.parse(event.yearMonth()));
                 case DEBT_CREATED -> addDebt(event, debtPlans);
                 case DEBT_REMOVED -> debtPlans.remove(event.description());
-                case MONTHLY_CLOSE -> currentBalance = applyMonthlyClose(
-                    currentBalance, YearMonth.parse(event.yearMonth()),
-                    ledgerEntries, subscriptions, debtPlans, flexiaByMonth,
-                    monthlyIncomes, monthlyExpenses
-                );
+                case MONTHLY_CLOSE -> {
+                    currentBalance = applyMonthlyClose(
+                        currentBalance, YearMonth.parse(event.yearMonth()),
+                        ledgerEntries, subscriptions, debtPlans, flexiaByMonth,
+                        monthlyIncomes, monthlyExpenses
+                    );
+                    currentMonthClosed = currentMonthClosed || YearMonth.now().toString().equals(event.yearMonth());
+                }
                 default -> { }
             }
         }
@@ -77,6 +86,7 @@ public class BudgetEngine {
         List<Subscription> subscriptionList = subscriptions.values().stream().toList();
 
         List<DebtView> debts = debtPlans.values().stream()
+            .filter(plan -> plan.isActive(currentMonth))
             .map(plan -> new DebtView(
                 plan.label(), plan.startMonth().toString(), plan.endMonth().toString(),
                 plan.monthlyInstallment(), plan.remaining()
@@ -84,6 +94,7 @@ public class BudgetEngine {
             .toList();
 
         Map<String, BigDecimal> flexia = flexiaByMonth.entrySet().stream()
+            .filter(entry -> !entry.getKey().isBefore(currentMonth))
             .sorted(Map.Entry.comparingByKey())
             .collect(LinkedHashMap::new, (acc, e) -> acc.put(e.getKey().toString(), e.getValue()), LinkedHashMap::putAll);
 
@@ -92,7 +103,7 @@ public class BudgetEngine {
             .limit(50)
             .toList();
 
-        return new DashboardSnapshot(currentBalance, subscriptionsTotal, subscriptionList, debts, flexia, monthlyIncomes, monthlyExpenses, latest);
+        return new DashboardSnapshot(currentBalance, subscriptionsTotal, subscriptionList, debts, flexia, monthlyIncomes, monthlyExpenses, latest, currentMonthClosed);
     }
 
     private void addDebt(BudgetEvent event, Map<String, DebtPlan> debtPlans) {
@@ -111,12 +122,16 @@ public class BudgetEngine {
                                          Map<YearMonth, BigDecimal> flexiaByMonth,
                                          Map<String, BigDecimal> monthlyIncomes,
                                          Map<String, BigDecimal> monthlyExpenses) {
-        BigDecimal flexiaAmount = flexiaByMonth.getOrDefault(yearMonth, BigDecimal.ZERO);
+        YearMonth flexiaMonthToCharge = resolveFlexiaMonthToCharge(flexiaByMonth, yearMonth);
+        BigDecimal flexiaAmount = flexiaMonthToCharge == null
+            ? BigDecimal.ZERO
+            : flexiaByMonth.getOrDefault(flexiaMonthToCharge, BigDecimal.ZERO);
         if (flexiaAmount.compareTo(BigDecimal.ZERO) > 0) {
             currentBalance = applyDelta(currentBalance, ledgerEntries,
-                flexiaAmount.negate(), "Flexia " + yearMonth,
+                flexiaAmount.negate(), "Flexia " + flexiaMonthToCharge,
                 BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
                 monthlyIncomes, monthlyExpenses, null);
+            flexiaByMonth.remove(flexiaMonthToCharge);
         }
 
         for (Subscription subscription : subscriptions.values()) {
@@ -137,7 +152,19 @@ public class BudgetEngine {
                 monthlyIncomes, monthlyExpenses, null);
         }
 
+        debtPlans.entrySet().removeIf(entry -> entry.getValue().remaining().compareTo(BigDecimal.ZERO) <= 0);
+
         return currentBalance;
+    }
+
+    private YearMonth resolveFlexiaMonthToCharge(Map<YearMonth, BigDecimal> flexiaByMonth, YearMonth closeMonth) {
+        if (flexiaByMonth.containsKey(closeMonth)) {
+            return closeMonth;
+        }
+        return flexiaByMonth.keySet().stream()
+            .filter(month -> !month.isAfter(closeMonth))
+            .max(YearMonth::compareTo)
+            .orElse(null);
     }
 
     private BigDecimal applyDelta(BigDecimal currentBalance,
@@ -163,6 +190,24 @@ public class BudgetEngine {
             delta,
             currentBalance,
             source
+        ));
+        return currentBalance;
+    }
+
+    private BigDecimal applyCarryover(BigDecimal currentBalance,
+                                      List<LedgerEntry> ledgerEntries,
+                                      BigDecimal delta,
+                                      String description,
+                                      LocalDate date,
+                                      String eventId) {
+        currentBalance = currentBalance.add(delta == null ? BigDecimal.ZERO : delta);
+        ledgerEntries.add(new LedgerEntry(
+            eventId,
+            date == null ? LocalDate.now() : date,
+            description,
+            delta == null ? BigDecimal.ZERO : delta,
+            currentBalance,
+            BudgetEventType.BALANCE_CARRYOVER
         ));
         return currentBalance;
     }

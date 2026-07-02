@@ -11,7 +11,7 @@
 <div class="container retro">
     <header class="top-strip">
         <div class="brand">Budget Club</div>
-        <div class="status-light blink">NYA ONLINE</div>
+        <div class="status-light blink">ONLINE</div>
     </header>
     <marquee class="ticker" behavior="scroll" direction="left">operazioni budget in stile arcade</marquee>
 
@@ -31,7 +31,7 @@
         <h2>Sessione attiva</h2>
         <div id="authUserBadge" class="auth-user-badge" hidden>
             <span class="user-icon" aria-hidden="true"></span>
-            <span id="authUsernameLabel">utente</span>
+            <span id="authEmailLabel">utente</span>
         </div>
         <button id="logoutBtn" type="button" class="danger-btn">Logout</button>
         <div id="authInfo" class="small-note"></div>
@@ -49,6 +49,7 @@
         <div class="total-box">
             Saldo attuale
             <strong id="balance">0.00 EUR</strong>
+            <div id="monthCloseStatus" class="month-close-status pending">⏳ Chiusura mese in verifica</div>
         </div>
     </section>
 
@@ -95,29 +96,72 @@
     <section class="card">
         <h2>Movimenti recenti</h2>
         <p class="muted">Clicca "Elimina" su una spesa o entrata per rimuoverla dal saldo.</p>
-        <table>
+        <table class="compact-table">
             <thead>
                 <tr><th>Data</th><th>Descrizione</th><th>Importo</th><th>Saldo</th><th>Tipo</th><th></th></tr>
             </thead>
             <tbody id="ledgerBody"></tbody>
         </table>
+        <div class="pager-bar">
+            <div id="ledgerPagerInfo" class="pager-info"></div>
+            <div class="pager-actions">
+                <button id="ledgerPrevBtn" type="button" class="pager-btn">◀</button>
+                <button id="ledgerNextBtn" type="button" class="pager-btn">▶</button>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>Debiti attivi</h2>
         <div class="muted">Totale rate mensili attive: <strong id="debtsInlineTotal">0.00 EUR</strong></div>
-        <ul id="debtList"></ul>
+        <table class="compact-table">
+            <thead>
+                <tr><th>Nome</th><th>Importo</th><th></th></tr>
+            </thead>
+            <tbody id="debtList"></tbody>
+        </table>
+        <div class="pager-bar">
+            <div id="debtPagerInfo" class="pager-info"></div>
+            <div class="pager-actions">
+                <button id="debtPrevBtn" type="button" class="pager-btn">◀</button>
+                <button id="debtNextBtn" type="button" class="pager-btn">▶</button>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>Abbonamenti attivi</h2>
         <div class="muted">Totale abbonamenti: <strong id="subscriptionsInlineTotal">0.00 EUR</strong></div>
-        <ul id="subscriptionList"></ul>
+        <table class="compact-table">
+            <thead>
+                <tr><th>Nome</th><th>Importo</th><th></th></tr>
+            </thead>
+            <tbody id="subscriptionList"></tbody>
+        </table>
+        <div class="pager-bar">
+            <div id="subscriptionPagerInfo" class="pager-info"></div>
+            <div class="pager-actions">
+                <button id="subscriptionPrevBtn" type="button" class="pager-btn">◀</button>
+                <button id="subscriptionNextBtn" type="button" class="pager-btn">▶</button>
+            </div>
+        </div>
     </section>
 
     <section class="card">
         <h2>Flexia impostata</h2>
-        <ul id="flexiaList"></ul>
+        <table class="compact-table">
+            <thead>
+                <tr><th>Mese</th><th>Importo</th><th></th></tr>
+            </thead>
+            <tbody id="flexiaList"></tbody>
+        </table>
+        <div class="pager-bar">
+            <div id="flexiaPagerInfo" class="pager-info"></div>
+            <div class="pager-actions">
+                <button id="flexiaPrevBtn" type="button" class="pager-btn">◀</button>
+                <button id="flexiaNextBtn" type="button" class="pager-btn">▶</button>
+            </div>
+        </div>
     </section>
 
     <footer class="status-bar">

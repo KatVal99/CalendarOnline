@@ -733,6 +733,77 @@ th, td {
     cursor: pointer;
 }
 
+.month-close-status {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 2px solid #ffa5d2;
+    background: #fff;
+    color: #7a2b58;
+    font-weight: bold;
+}
+
+.month-close-status.ok {
+    border-color: #71d19d;
+    background: #effdf4;
+    color: #1f7a49;
+}
+
+.month-close-status.pending {
+    border-color: #ffb86c;
+    background: #fff8ef;
+    color: #a96009;
+}
+
+.compact-table th,
+.compact-table td {
+    vertical-align: middle;
+}
+
+.compact-table td:last-child,
+.compact-table th:last-child {
+    width: 96px;
+    text-align: right;
+}
+
+.pager-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.pager-info {
+    color: #7a2b58;
+    font-size: 12px;
+}
+
+.pager-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pager-btn {
+    width: auto;
+    min-width: 44px;
+    margin-top: 0;
+    padding: 6px 10px;
+    background: #fff;
+    border: 2px solid #ffa5d2;
+    color: #7a2b58;
+    font-weight: bold;
+}
+
+.pager-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 /* ========== ERROR MODAL/POPUP ========== */
 
 .error-modal {

@@ -12,7 +12,8 @@ public record DashboardSnapshot(
     Map<String, BigDecimal> flexiaByMonth,
     Map<String, BigDecimal> monthlyIncomes,
     Map<String, BigDecimal> monthlyExpenses,
-    List<LedgerEntry> latestEntries
+    List<LedgerEntry> latestEntries,
+    boolean currentMonthClosed
 ) {
 }
 

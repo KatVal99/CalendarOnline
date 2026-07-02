@@ -51,28 +51,19 @@ function setAuthInfo() {
         }
     }
 
-    if (authHeader) {
-        if (userBadge) {
-            userBadge.hidden = false;
-        }
-        if (logoutBtn) {
-            logoutBtn.hidden = false;
-        }
-        if (usernameLabel) {
-            usernameLabel.textContent = authenticatedUsername || 'sconosciuto';
-        }
-        info.textContent = `Utente autenticato: ${authenticatedUsername || 'sconosciuto'} (Basic Auth attiva)`;
-    } else {
-        if (userBadge) {
-            userBadge.hidden = true;
-        }
-        if (logoutBtn) {
-            logoutBtn.hidden = true;
-        }
-        if (usernameLabel) {
-            usernameLabel.textContent = 'utente';
-        }
-        info.textContent = 'Non autenticato';
+    const isAuthenticated = Boolean(authHeader && authenticatedUsername);
+    info.textContent = isAuthenticated
+        ? `Connesso come ${authenticatedUsername}`
+        : 'Non autenticato';
+
+    if (usernameLabel) {
+        usernameLabel.textContent = isAuthenticated ? authenticatedUsername : '';
+    }
+    if (userBadge) {
+        userBadge.style.display = isAuthenticated ? 'inline-flex' : 'none';
+    }
+    if (logoutBtn) {
+        logoutBtn.style.display = isAuthenticated ? 'inline-flex' : 'none';
     }
 }
 
@@ -669,4 +660,3 @@ updateClock();
 setInterval(updateClock, 1000);
 initPixelStars();
 refreshDashboard();
-

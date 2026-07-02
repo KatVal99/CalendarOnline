@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BudgetEventRepository extends JpaRepository<BudgetEventEntity, String> {
@@ -17,6 +18,12 @@ public interface BudgetEventRepository extends JpaRepository<BudgetEventEntity, 
     List<String> findDistinctUsernames();
 
     boolean existsByUsernameAndTypeAndYearMonth(String username, BudgetEventType type, String yearMonth);
+
+    List<BudgetEventEntity> findByUsernameAndTypeInAndEventDateBeforeOrderByEventDateAscIdAsc(
+        String username,
+        List<BudgetEventType> types,
+        LocalDate eventDate
+    );
 
     @Modifying
     @Transactional

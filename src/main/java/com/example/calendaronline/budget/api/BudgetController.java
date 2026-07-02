@@ -8,6 +8,8 @@ import com.example.calendaronline.budget.persistence.BudgetEventRepository;
 import com.example.calendaronline.budget.service.BudgetEngine;
 import com.example.calendaronline.budget.service.BudgetEventMapper;
 import com.example.calendaronline.budget.service.BudgetEventPublisher;
+import com.example.calendaronline.budget.service.MovementRetentionService;
+import com.example.calendaronline.budget.service.MonthlyCloseService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,13 +30,19 @@ public class BudgetController {
     private final BudgetEventPublisher publisher;
     private final BudgetEngine budgetEngine;
     private final BudgetEventRepository budgetEventRepository;
+    private final MonthlyCloseService monthlyCloseService;
+    private final MovementRetentionService movementRetentionService;
 
     public BudgetController(BudgetEventPublisher publisher,
                             BudgetEngine budgetEngine,
-                            BudgetEventRepository budgetEventRepository) {
+                            BudgetEventRepository budgetEventRepository,
+                            MonthlyCloseService monthlyCloseService,
+                            MovementRetentionService movementRetentionService) {
         this.publisher = publisher;
         this.budgetEngine = budgetEngine;
         this.budgetEventRepository = budgetEventRepository;
+        this.monthlyCloseService = monthlyCloseService;
+        this.movementRetentionService = movementRetentionService;
     }
 
     @PostMapping("/incomes")
@@ -122,7 +130,7 @@ public class BudgetController {
     }
 
     @PostMapping("/monthly-close")
-    public Map<String, String> closeMonthLegacy(@RequestBody MonthlyCloseRequest request, Principal principal) {
+    public Map<String, String> closeMonthLegacy() {
         // Endpoint mantenuto per compatibilità ma non più esposto nella UI.
         return Map.of("status", "noop");
     }
@@ -141,6 +149,8 @@ public class BudgetController {
 
     @GetMapping("/dashboard")
     public DashboardSnapshot dashboard(Principal principal) {
+        movementRetentionService.purgeExpiredMovements(principal.getName());
+        monthlyCloseService.ensureCurrentMonthClosed(principal.getName());
         return budgetEngine.snapshot(
             budgetEventRepository.findByUsernameOrderByEventDateAscIdAsc(principal.getName()).stream()
                 .map(BudgetEventMapper::toModel)

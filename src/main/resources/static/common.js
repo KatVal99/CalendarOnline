@@ -392,14 +392,6 @@ const BudgetApp = (() => {
         if (emailLabel) {
             emailLabel.textContent = authHeader ? (authenticatedEmail || 'sconosciuto') : 'utente';
         }
-        if (info) {
-            info.textContent = authHeader
-                ? `Utente autenticato: ${authenticatedEmail || 'sconosciuto'} (Basic Auth attiva)`
-                : 'Non autenticato';
-        }
-        if (authRequired) {
-            authRequired.hidden = Boolean(authHeader);
-        }
     }
 
     function clearDashboardFragments() {

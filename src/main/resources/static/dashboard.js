@@ -1,6 +1,55 @@
 (() => {
+    const PAGE_SIZE = 5;
     let calendarCursor = new Date();
     let appointmentsByDate = {};
+    let ledgerPage = 0;
+
+    function paginate(items, page) {
+        const normalized = Array.isArray(items) ? items : [];
+        const totalPages = Math.max(1, Math.ceil(normalized.length / PAGE_SIZE));
+        const safePage = Math.max(0, Math.min(page, totalPages - 1));
+        const start = safePage * PAGE_SIZE;
+        return {
+            page: safePage,
+            totalPages,
+            rows: normalized.slice(start, start + PAGE_SIZE),
+            totalItems: normalized.length,
+            start: normalized.length === 0 ? 0 : start + 1,
+            end: Math.min(start + PAGE_SIZE, normalized.length)
+        };
+    }
+
+    function renderMonthCloseStatus(snapshot) {
+        const status = document.getElementById('monthCloseStatus');
+        if (!status) {
+            return;
+        }
+        if (snapshot.currentMonthClosed) {
+            status.className = 'month-close-status ok';
+            status.textContent = `✓ Chiusura ${new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })} applicata`;
+        } else {
+            status.className = 'month-close-status pending';
+            status.textContent = '⏳ Chiusura mese in attesa';
+        }
+    }
+
+    function updateLedgerPager(result) {
+        ledgerPage = result.page;
+        const info = document.getElementById('dashboardLedgerPagerInfo');
+        const prev = document.getElementById('dashboardLedgerPrevBtn');
+        const next = document.getElementById('dashboardLedgerNextBtn');
+        if (info) {
+            info.textContent = result.totalItems === 0
+                ? 'Nessun movimento'
+                : `Righe ${result.start}-${result.end} di ${result.totalItems} · Pagina ${result.page + 1}/${result.totalPages}`;
+        }
+        if (prev) {
+            prev.disabled = result.page === 0;
+        }
+        if (next) {
+            next.disabled = result.page >= result.totalPages - 1;
+        }
+    }
 
     function mapEventsByDate(events) {
         const result = {};
@@ -178,6 +227,7 @@
                 .reduce((sum, debt) => sum + Number(debt.monthlyInstallment || 0), 0);
             debtsTotal.textContent = `${totalDebtInstallments.toFixed(2)} EUR`;
         }
+        renderMonthCloseStatus(snapshot);
     }
 
     function renderLedger(entries) {
@@ -186,7 +236,8 @@
             return;
         }
         ledger.innerHTML = '';
-        (entries || []).forEach((entry) => {
+        const result = paginate(entries || [], ledgerPage);
+        result.rows.forEach((entry) => {
             const row = document.createElement('tr');
             const isDeletable = entry.source === 'EXPENSE' || entry.source === 'INCOME';
             let deleteCell = '<td></td>';
@@ -220,6 +271,7 @@
             `;
             ledger.appendChild(row);
         });
+        updateLedgerPager(result);
     }
 
     async function refreshDashboard() {
@@ -275,6 +327,14 @@
     async function init() {
         bindCalendarForm();
         document.getElementById('refreshBtn')?.addEventListener('click', refreshDashboard);
+        document.getElementById('dashboardLedgerPrevBtn')?.addEventListener('click', async () => {
+            ledgerPage -= 1;
+            await refreshDashboard();
+        });
+        document.getElementById('dashboardLedgerNextBtn')?.addEventListener('click', async () => {
+            ledgerPage += 1;
+            await refreshDashboard();
+        });
 
         document.getElementById('purgeMonthlyCloseBtn')?.addEventListener('click', async () => {
             const confirmed = window.confirm(
