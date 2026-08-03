@@ -2,12 +2,14 @@ package com.example.calendaronline.calendar.service;
 
 import com.example.calendaronline.calendar.api.CalendarEventDto;
 import com.example.calendaronline.calendar.api.CalendarEventRequest;
+import com.example.calendaronline.calendar.model.CalendarEventType;
 import com.example.calendaronline.calendar.persistence.CalendarEventEntity;
 import com.example.calendaronline.calendar.persistence.CalendarEventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -22,7 +24,7 @@ public class CalendarEventService {
     public List<CalendarEventDto> listByMonth(String username, int year, int month) {
         LocalDate from = LocalDate.of(year, month, 1);
         LocalDate to = from.withDayOfMonth(from.lengthOfMonth());
-        return calendarEventRepository.findByUsernameAndEventDateBetweenOrderByEventDateAscIdAsc(username, from, to)
+        return calendarEventRepository.findByUsernameAndEventDateBetweenOrderByEventDateAscEventTimeAscIdAsc(username, from, to)
             .stream()
             .map(this::toDto)
             .toList();
@@ -33,8 +35,26 @@ public class CalendarEventService {
         CalendarEventEntity entity = new CalendarEventEntity();
         entity.setUsername(username);
         entity.setEventDate(LocalDate.parse(request.date()));
+        entity.setEventTime(parseTime(request.time()));
         entity.setTitle(request.title().trim());
+        entity.setEventType(parseEventType(request.eventType()));
+        entity.setReminderMinutes(parseReminderMinutes(request.reminderMinutes()));
         entity.setCreatedAt(LocalDateTime.now());
+        return toDto(calendarEventRepository.save(entity));
+    }
+
+    public CalendarEventDto update(String username, Long id, CalendarEventRequest request) {
+        validate(request);
+        CalendarEventEntity entity = calendarEventRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Evento non trovato"));
+        if (!entity.getUsername().equalsIgnoreCase(username)) {
+            throw new IllegalArgumentException("Non puoi modificare eventi di un altro utente");
+        }
+        entity.setEventDate(LocalDate.parse(request.date()));
+        entity.setEventTime(parseTime(request.time()));
+        entity.setTitle(request.title().trim());
+        entity.setEventType(parseEventType(request.eventType()));
+        entity.setReminderMinutes(parseReminderMinutes(request.reminderMinutes()));
         return toDto(calendarEventRepository.save(entity));
     }
 
@@ -55,10 +75,48 @@ public class CalendarEventService {
             throw new IllegalArgumentException("Titolo troppo lungo (max 120 caratteri)");
         }
         LocalDate.parse(request.date());
+        if (request.time() != null && !request.time().isBlank()) {
+            LocalTime.parse(request.time());
+        }
+        parseEventType(request.eventType());
+        parseReminderMinutes(request.reminderMinutes());
     }
 
+    private LocalTime parseTime(String time) {
+        if (time == null || time.isBlank()) {
+            return null;
+        }
+        return LocalTime.parse(time);
+    }
+
+    private CalendarEventType parseEventType(String type) {
+        if (type == null || type.isBlank()) {
+            return CalendarEventType.PERSONAL;
+        }
+        return CalendarEventType.valueOf(type.trim().toUpperCase());
+    }
+
+    private Integer parseReminderMinutes(Integer reminderMinutes) {
+        if (reminderMinutes == null) {
+            return null;
+        }
+        if (reminderMinutes < 0 || reminderMinutes > 10080) {
+            throw new IllegalArgumentException("Promemoria non valido (0-10080 minuti)");
+        }
+        return reminderMinutes == 0 ? null : reminderMinutes;
+    }
+
+
     private CalendarEventDto toDto(CalendarEventEntity entity) {
-        return new CalendarEventDto(entity.getId(), entity.getEventDate().toString(), entity.getTitle());
+        CalendarEventType type = entity.getEventType() != null ? entity.getEventType() : CalendarEventType.PERSONAL;
+        return new CalendarEventDto(
+            entity.getId(),
+            entity.getEventDate().toString(),
+            entity.getEventTime() != null ? entity.getEventTime().toString() : null,
+            entity.getTitle(),
+            type.name(),
+            entity.getReminderMinutes()
+        );
     }
 }
 

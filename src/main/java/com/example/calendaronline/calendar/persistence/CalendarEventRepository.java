@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface CalendarEventRepository extends JpaRepository<CalendarEventEntity, Long> {
 
-    List<CalendarEventEntity> findByUsernameOrderByEventDateAscIdAsc(String username);
+    List<CalendarEventEntity> findByUsernameOrderByEventDateAscEventTimeAscIdAsc(String username);
 
-    List<CalendarEventEntity> findByUsernameAndEventDateBetweenOrderByEventDateAscIdAsc(String username, LocalDate from, LocalDate to);
+    List<CalendarEventEntity> findByUsernameAndEventDateBetweenOrderByEventDateAscEventTimeAscIdAsc(String username, LocalDate from, LocalDate to);
 }
 

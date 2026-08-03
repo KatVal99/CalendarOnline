@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,6 +36,20 @@ public class CalendarEventController {
     public CalendarEventDto create(@RequestBody CalendarEventRequest request,
                                    Principal principal) {
         return calendarEventService.create(principal.getName(), request);
+    }
+
+    @PutMapping("/{id}")
+    public CalendarEventDto update(@PathVariable Long id,
+                                   @RequestBody CalendarEventRequest request,
+                                   Principal principal) {
+        return calendarEventService.update(principal.getName(), id, request);
+    }
+
+    @PostMapping("/{id}")
+    public CalendarEventDto updateViaPost(@PathVariable Long id,
+                                          @RequestBody CalendarEventRequest request,
+                                          Principal principal) {
+        return calendarEventService.update(principal.getName(), id, request);
     }
 
     @DeleteMapping("/{id}")
