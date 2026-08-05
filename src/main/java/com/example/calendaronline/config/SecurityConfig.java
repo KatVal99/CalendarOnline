@@ -35,7 +35,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/", "/index.html", "/login.html", "/reset-password.html",
+                .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico",
+                    "/login", "/reset-password", "/help", "/operations", "/report", "/game",
+                    "/login.html", "/reset-password.html",
                     "/style.css", "/app.js", "/common.js", "/layout.js", "/dashboard.js").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/operator/users").permitAll()
