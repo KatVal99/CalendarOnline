@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [section, setSection] = useState<Section>('login');
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -34,6 +35,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const ok = await loginCheck(loginEmail, loginPassword);
       if (ok) {
@@ -41,10 +43,17 @@ export default function LoginPage() {
         setAuth({ authHeader: `Basic ${encoded}`, email: loginEmail });
         navigate('/');
       } else {
-        setError({ title: 'Accesso negato', message: 'Email o password errata.' });
+        setError({ title: 'Accesso negato', message: 'Email o password errata. Verifica le credenziali e riprova.' });
       }
     } catch (err) {
-      setError({ title: 'Errore di rete', message: (err as Error).message });
+      const msg = (err as Error).message;
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        setError({ title: 'Server non raggiungibile', message: 'Il server potrebbe essere in avvio (fino a 60 sec). Riprova tra qualche secondo.' });
+      } else {
+        setError({ title: 'Errore di rete', message: msg });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,7 +123,9 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
             />
-            <button className="btn btn-primary" type="submit">🔓 Accedi</button>
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+              {loading ? '⏳ Connessione al server...' : '🔓 Accedi'}
+            </button>
           </form>
         )}
 
@@ -145,7 +156,9 @@ export default function LoginPage() {
               required
               autoComplete="email"
             />
-            <button className="btn btn-primary" type="submit">✅ Crea Account</button>
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+              {loading ? '⏳ Creazione...' : '✅ Crea Account'}
+            </button>
           </form>
         )}
 
@@ -160,7 +173,9 @@ export default function LoginPage() {
               required
               autoComplete="email"
             />
-            <button className="btn btn-primary" type="submit">📧 Invia link reset</button>
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+              {loading ? '⏳ Invio...' : '📧 Invia link reset'}
+            </button>
           </form>
         )}
       </div>
