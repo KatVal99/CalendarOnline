@@ -33,8 +33,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Email e password sono obbligatori"));
         }
 
-        String normalizedEmail = request.email().trim().toLowerCase();
-        AppUserEntity user = appUserRepository.findById(normalizedEmail)
+        String normalizedInput = request.email().trim();
+        AppUserEntity user = appUserRepository.findByEmail(normalizedInput.toLowerCase())
+                .or(() -> appUserRepository.findByEmail(normalizedInput))
+                .or(() -> appUserRepository.findById(normalizedInput))
+                .or(() -> appUserRepository.findById(normalizedInput.toLowerCase()))
                 .orElse(null);
 
         if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {

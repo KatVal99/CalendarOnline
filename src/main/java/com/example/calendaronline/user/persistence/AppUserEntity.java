@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @Table(name = "app_users")
 public class AppUserEntity {
 
-    @Id
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Id
     private String username;
 
     @Column(nullable = false)

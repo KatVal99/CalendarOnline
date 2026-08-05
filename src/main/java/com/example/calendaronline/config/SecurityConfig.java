@@ -77,13 +77,19 @@ public class SecurityConfig {
 
     @Bean
     UserDetailsService users(AppUserRepository appUserRepository) {
-        return email -> appUserRepository.findById(email == null ? "" : email.trim().toLowerCase())
-            .map(user -> org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPasswordHash())
-                .roles("USER")
-                .build())
-            .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato"));
+        return input -> {
+            String val = input == null ? "" : input.trim();
+            return appUserRepository.findByEmail(val.toLowerCase())
+                .or(() -> appUserRepository.findByEmail(val))
+                .or(() -> appUserRepository.findById(val))
+                .or(() -> appUserRepository.findById(val.toLowerCase()))
+                .map(user -> org.springframework.security.core.userdetails.User
+                    .withUsername(user.getEmail())
+                    .password(user.getPasswordHash())
+                    .roles("USER")
+                    .build())
+                .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato: " + input));
+        };
     }
 
     @Bean
