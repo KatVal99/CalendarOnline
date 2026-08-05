@@ -6,7 +6,7 @@ import type { DashboardData, CalendarEvent } from '../types';
 
 const isNativeApp = typeof window !== 'undefined' && (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const envApiUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-const BASE_URL = envApiUrl || (isNativeApp ? 'http://192.168.1.58:8080/api' : '/api');
+const BASE_URL = envApiUrl || (isNativeApp ? 'https://calendaronline.onrender.com/api' : '/api');
 
 function getAuthHeader(): string {
   return localStorage.getItem('budgetAuthHeader') ?? '';
