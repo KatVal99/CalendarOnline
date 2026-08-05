@@ -10,5 +10,7 @@ public interface CalendarEventRepository extends JpaRepository<CalendarEventEnti
     List<CalendarEventEntity> findByUsernameOrderByEventDateAscEventTimeAscIdAsc(String username);
 
     List<CalendarEventEntity> findByUsernameAndEventDateBetweenOrderByEventDateAscEventTimeAscIdAsc(String username, LocalDate from, LocalDate to);
+
+    List<CalendarEventEntity> findByUsernameAndEventDateGreaterThanEqualOrderByEventDateAscEventTimeAscIdAsc(String username, LocalDate fromDate);
 }
 

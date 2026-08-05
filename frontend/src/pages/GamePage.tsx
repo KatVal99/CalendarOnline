@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import SudokuArcade from '../components/SudokuArcade';
 import RunnerArcade from '../components/RunnerArcade';
+import CoinCatcherArcade from '../components/CoinCatcherArcade';
+import { arcadeAudio } from '../utils/arcadeAudio';
 
 // ─── Game Constants ────────────────────────────────────────────────
 const W = 820, H = 540;
@@ -47,89 +49,6 @@ const ALIEN_SPRITES = [
     [0,1,0,1,1,0,1,0,  1,0,1,0,0,1,0,1]
   ]
 ];
-
-// ─── SINTETIZZATORE AUDIO RETRO 8-BIT ──────────────────────────────
-class RetroAudio {
-  private ctx: AudioContext | null = null;
-
-  private init() {
-    if (!this.ctx) {
-      this.ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-  }
-
-  playLaser() {
-    this.init();
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
-
-    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.12);
-  }
-
-  playExplosion() {
-    this.init();
-    if (!this.ctx) return;
-    const bufferSize = this.ctx.sampleRate * 0.2;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-    }
-
-    const whiteNoise = this.ctx.createBufferSource();
-    whiteNoise.buffer = buffer;
-
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
-    filter.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.2);
-
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-
-    whiteNoise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    whiteNoise.start();
-    whiteNoise.stop(this.ctx.currentTime + 0.2);
-  }
-
-  playHit() {
-    this.init();
-    if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
-
-    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.08);
-  }
-}
-
-const soundFX = new RetroAudio();
 
 interface Bullet { x: number; y: number; speed: number }
 interface Alien { x: number; y: number; alive: boolean; row: number; points: number }
@@ -372,7 +291,12 @@ function SpaceInvadersArcade() {
       parseInt(localStorage.getItem('space-hs') ?? '0')
   );
 
+  const [isMuted, setIsMuted] = useState(arcadeAudio.getMuted());
+
   const endGame = useCallback((gs: GS, won: boolean) => {
+    arcadeAudio.stopMusic();
+    if (won) arcadeAudio.playPowerup();
+    else arcadeAudio.playGameOver();
     gs.phase = won ? 'win' : 'over';
     setPhase(gs.phase);
     setScore(gs.score);
@@ -388,28 +312,37 @@ function SpaceInvadersArcade() {
     setScore(0);
     setLives(3);
     setPhase('play');
+    arcadeAudio.startSpaceInvadersMusic(400);
   }, []);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if ([' ', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
-      keysRef.current.add(e.key);
+      const k = e.key.toLowerCase();
+      if ([' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'a', 'd', 'z', 'w', 's'].includes(k)) {
+        e.preventDefault();
+      }
+      keysRef.current.add(k);
     };
-    const up = (e: KeyboardEvent) => keysRef.current.delete(e.key);
+    const up = (e: KeyboardEvent) => {
+      keysRef.current.delete(e.key.toLowerCase());
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
   }, []);
 
   useEffect(() => {
-    if (phase !== 'play') return;
+    if (phase !== 'play') {
+      arcadeAudio.stopMusic();
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
     const hs = parseInt(localStorage.getItem('space-hs') ?? '0');
 
-    const PSPEED = 5, BSPEED = 10, ABSPEED = 3.5;
-    const MIN_SHOT_INTERVAL = 300;
+    const PSPEED = 7.5, BSPEED = 12, ABSPEED = 3.5;
+    const MIN_SHOT_INTERVAL = 250;
 
     function loop() {
       const gs = gsRef.current;
@@ -417,14 +350,14 @@ function SpaceInvadersArcade() {
       gs.frame++;
 
       const keys = keysRef.current;
-      if (keys.has('ArrowLeft') || keys.has('a')) gs.playerX = Math.max(0, gs.playerX - PSPEED);
-      if (keys.has('ArrowRight') || keys.has('d')) gs.playerX = Math.min(W - P_W, gs.playerX + PSPEED);
+      if (keys.has('arrowleft') || keys.has('a')) gs.playerX = Math.max(0, gs.playerX - PSPEED);
+      if (keys.has('arrowright') || keys.has('d')) gs.playerX = Math.min(W - P_W, gs.playerX + PSPEED);
 
       const now = Date.now();
       if ((keys.has(' ') || keys.has('z')) && now - gs.lastPShot > MIN_SHOT_INTERVAL) {
         gs.pBullets.push({ x: gs.playerX + P_W / 2 - B_W / 2, y: H - P_H - 36, speed: BSPEED });
         gs.lastPShot = now;
-        soundFX.playLaser();
+        arcadeAudio.playLaser();
       }
 
       gs.pBullets = gs.pBullets.filter((b) => { b.y -= b.speed; return b.y > -B_H; });
@@ -469,7 +402,7 @@ function SpaceInvadersArcade() {
             gs.score += a.points;
             setScore(gs.score);
             addExplosion(gs.particles, a.x + A_W / 2, a.y + A_H / 2, ALIEN_COLORS[a.row % ALIEN_COLORS.length]);
-            soundFX.playExplosion();
+            arcadeAudio.playExplosion();
             return false;
           }
         }
@@ -482,7 +415,7 @@ function SpaceInvadersArcade() {
           if (s.hp > 0 && rectHit(b.x, b.y, B_W, B_H, s.x, s.y, 56, 24)) {
             s.hp = Math.max(0, s.hp - 1);
             addExplosion(gs.particles, b.x, b.y, '#00ffff');
-            soundFX.playHit();
+            arcadeAudio.playExplosion();
             return false;
           }
         }
@@ -496,7 +429,7 @@ function SpaceInvadersArcade() {
           gs.lives--;
           setLives(gs.lives);
           addExplosion(gs.particles, gs.playerX + P_W / 2, py + P_H / 2, '#ff0055');
-          soundFX.playHit();
+          arcadeAudio.playExplosion();
           if (gs.lives <= 0) { endGame(gs, false); return false; }
           return false;
         }
@@ -509,7 +442,7 @@ function SpaceInvadersArcade() {
           if (s.hp > 0 && rectHit(b.x, b.y, B_W, B_H, s.x, s.y, 56, 24)) {
             s.hp = Math.max(0, s.hp - 1);
             addExplosion(gs.particles, b.x, b.y, '#ff4444');
-            soundFX.playHit();
+            arcadeAudio.playExplosion();
             return false;
           }
         }
@@ -539,7 +472,10 @@ function SpaceInvadersArcade() {
     }
 
     animRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animRef.current);
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      arcadeAudio.stopMusic();
+    };
   }, [phase, endGame]);
 
   return (
@@ -555,10 +491,26 @@ function SpaceInvadersArcade() {
           </div>
         </div>
 
-        <div className="game-hud-bar">
-          <span className="hud-item">SCORE <strong className="positive">{score}</strong></span>
-          <span className="hud-item">BEST <strong className="positive" style={{ color: 'var(--cyan)' }}>{highScore}</strong></span>
-          <span className="hud-item" style={{ color: 'var(--red)' }}>LIVES {'♥'.repeat(Math.max(0, lives))}</span>
+        <div className="game-hud-bar" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <span className="hud-item">SCORE <strong className="positive">{score}</strong></span>
+            <span className="hud-item">BEST <strong className="positive" style={{ color: 'var(--cyan)' }}>{highScore}</strong></span>
+            <span className="hud-item" style={{ color: 'var(--red)' }}>LIVES {'♥'.repeat(Math.max(0, lives))}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              className="btn btn-small btn-yellow"
+              onClick={() => arcadeAudio.playTestSound()}
+            >
+              🔔 PROVA AUDIO
+            </button>
+            <button
+              className="btn btn-small btn-primary"
+              onClick={() => setIsMuted(arcadeAudio.toggleMute())}
+            >
+              {isMuted ? '🔇 AUDIO: OFF' : '🔊 MUSIC: ON'}
+            </button>
+          </div>
         </div>
 
         <div className="canvas-wrapper">
@@ -607,6 +559,43 @@ function SpaceInvadersArcade() {
           )}
         </div>
 
+        {phase === 'play' && (
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.75rem' }}>
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.6rem 1.5rem', fontSize: '13px' }}
+              onMouseDown={() => keysRef.current.add('arrowleft')}
+              onMouseUp={() => keysRef.current.delete('arrowleft')}
+              onTouchStart={() => keysRef.current.add('arrowleft')}
+              onTouchEnd={() => keysRef.current.delete('arrowleft')}
+            >
+              ◀ SINISTRA (A)
+            </button>
+            <button
+              className="btn btn-green"
+              style={{ padding: '0.6rem 1.8rem', fontSize: '13px', background: 'rgba(0,255,136,0.15)' }}
+              onClick={() => {
+                const gs = gsRef.current;
+                const BSPEED = 12;
+                gs.pBullets.push({ x: gs.playerX + P_W / 2 - B_W / 2, y: H - P_H - 36, speed: BSPEED });
+                arcadeAudio.playLaser();
+              }}
+            >
+              🔥 SPARA (SPACE)
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.6rem 1.5rem', fontSize: '13px' }}
+              onMouseDown={() => keysRef.current.add('arrowright')}
+              onMouseUp={() => keysRef.current.delete('arrowright')}
+              onTouchStart={() => keysRef.current.add('arrowright')}
+              onTouchEnd={() => keysRef.current.delete('arrowright')}
+            >
+              DESTRA (D) ▶
+            </button>
+          </div>
+        )}
+
         <div className="game-legend">
           <div className="legend-alien-row">
             <span style={{ color: '#ff00ff' }}>👾</span> 40-50 pt (Riga 1-2)
@@ -625,7 +614,7 @@ function SpaceInvadersArcade() {
   );
 }
 
-type ArcadeTab = 'invaders' | 'sudoku' | 'runner';
+type ArcadeTab = 'invaders' | 'catcher' | 'sudoku' | 'runner';
 
 export default function GamePage() {
   const [activeTab, setActiveTab] = useState<ArcadeTab>('invaders');
@@ -636,14 +625,16 @@ export default function GamePage() {
           <h1>👾 Arcade District</h1>
           <div className="game-tabs">
             <button className={`btn btn-small ${activeTab === 'invaders' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('invaders')}>Space Invaders</button>
+            <button className={`btn btn-small ${activeTab === 'catcher' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('catcher')}>Budget Catcher</button>
             <button className={`btn btn-small ${activeTab === 'sudoku' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('sudoku')}>Sudoku</button>
             <button className={`btn btn-small ${activeTab === 'runner' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('runner')}>Platform Run</button>
           </div>
         </div>
 
-        <div className="arcade-hero-note">Tre modalità arcade: shooter, puzzle e platformer neon in stile retro-cyberpunk.</div>
+        <div className="arcade-hero-note">Quattro modalità arcade: shooter, coin collector, puzzle e platformer neon in stile retro-cyberpunk.</div>
 
         {activeTab === 'invaders' && <SpaceInvadersArcade />}
+        {activeTab === 'catcher' && <CoinCatcherArcade />}
         {activeTab === 'sudoku' && <SudokuArcade />}
         {activeTab === 'runner' && <RunnerArcade />}
       </div>

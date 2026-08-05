@@ -38,6 +38,8 @@ public class BudgetEventEntity {
 
     private Integer durationMonths;
 
+    private String category;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -103,6 +105,14 @@ public class BudgetEventEntity {
 
     public void setDurationMonths(Integer durationMonths) {
         this.durationMonths = durationMonths;
+    }
+
+    public String getCategory() {
+        return category != null ? category : "Altro";
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public LocalDateTime getCreatedAt() {

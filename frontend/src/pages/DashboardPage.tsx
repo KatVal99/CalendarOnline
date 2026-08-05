@@ -1,10 +1,17 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { CalendarEvent, DashboardData, LedgerEntry } from '../types';
-import { fetchCalendarEvents, fetchDashboard, deleteIncome, deleteExpense, deleteMonthlyClose } from '../api/client';
+import {
+  fetchCalendarEvents, fetchDashboard, deleteIncome, deleteExpense, deleteMonthlyClose,
+  fetchCategorySummary, fetchSavingsGoals, createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, depositSavingsGoal,
+  fetchCategoryLimits, setCategoryLimit, fetchForecast
+} from '../api/client';
 import CalendarWidget from '../components/CalendarWidget';
 import PaginatedTable from '../components/PaginatedTable';
 import Toast from '../components/Toast';
 import ErrorModal from '../components/ErrorModal';
+import CategoryCharts from '../components/CategoryCharts';
+import SavingsGoalsWidget, { SavingsGoal } from '../components/SavingsGoalsWidget';
+import CategoryLimitsWidget, { CategoryLimit } from '../components/CategoryLimitsWidget';
 import { useAuth } from '../context/AuthContext';
 
 // ─── Donut Chart ──────────────────────────────────────────────────
@@ -107,12 +114,7 @@ function SmoothLineChart({ rawData, color = '#00ff88' }: { rawData: number[]; co
   );
 }
 
-// ─── User Savings Goals ───────────────────────────────────────────
-interface SavingGoal { id: string; name: string; current: number; target: number }
-function loadGoals(): SavingGoal[] {
-  try { const r = localStorage.getItem('saving-goals'); return r ? JSON.parse(r) : []; } catch { return []; }
-}
-function persistGoals(g: SavingGoal[]) { localStorage.setItem('saving-goals', JSON.stringify(g)); }
+
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n);
@@ -176,22 +178,88 @@ export default function DashboardPage() {
   const [movementFilter, setMovementFilter] = useState('');
   const [calendarTaskEvents, setCalendarTaskEvents] = useState<CalendarEvent[]>([]);
 
-  // User-defined savings goals
-  const [goals, setGoals] = useState<SavingGoal[]>(loadGoals);
-  const [showGoalForm, setShowGoalForm] = useState(false);
-  const [newGoalName, setNewGoalName] = useState('');
-  const [newGoalCurrent, setNewGoalCurrent] = useState('');
-  const [newGoalTarget, setNewGoalTarget] = useState('');
+  // Advanced features state
+  const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
+  const [backendGoals, setBackendGoals] = useState<SavingsGoal[]>([]);
+  const [categoryLimits, setCategoryLimits] = useState<CategoryLimit[]>([]);
+  const [forecastData, setForecastData] = useState<any | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const showError = (msg: string) => setError({ title: 'Errore', message: msg });
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setData(await fetchDashboard()); }
-    catch (e) { showError((e as Error).message); }
-    finally { setLoading(false); }
+    try {
+      const [dash, catSummary, goalsData, limitsData, fcData] = await Promise.all([
+        fetchDashboard(),
+        fetchCategorySummary().catch((e) => { console.warn('Categorie summary fallita:', e.message); return null; }),
+        fetchSavingsGoals().catch((e) => { console.warn('Salvadanai falliti:', e.message); showToast('⚠️ Errore caricamento salvadanai: ' + e.message); return []; }),
+        fetchCategoryLimits().catch((e) => { console.warn('Tetti spesa falliti:', e.message); showToast('⚠️ Errore caricamento tetti spesa: ' + e.message); return []; }),
+        fetchForecast().catch(() => null)
+      ]);
+      setData(dash);
+      if (catSummary?.expensesByCategory) {
+        setExpensesByCategory(catSummary.expensesByCategory);
+      }
+      setBackendGoals(goalsData || []);
+      setCategoryLimits(limitsData || []);
+      setForecastData(fcData);
+    } catch (e) {
+      showError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  const handleAddSavingsGoal = async (name: string, targetAmount: number, targetDate?: string, icon?: string) => {
+    try {
+      await createSavingsGoal(name, targetAmount, targetDate, icon);
+      showToast('Salvadanaio creato con successo! 🎯');
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
+
+  const handleUpdateSavingsGoal = async (goalId: string, name: string, targetAmount: number, targetDate?: string, icon?: string) => {
+    try {
+      await updateSavingsGoal(goalId, name, targetAmount, targetDate, icon);
+      showToast('Salvadanaio aggiornato! ✏️');
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
+
+  const handleDepositSavingsGoal = async (goalId: string, amount: number) => {
+    try {
+      await depositSavingsGoal(goalId, amount);
+      showToast('Transazione salvadanaio registrata! 💰');
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
+
+  const handleDeleteSavingsGoal = async (goalId: string) => {
+    try {
+      await deleteSavingsGoal(goalId);
+      showToast('Salvadanaio eliminato');
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
+
+  const handleSetCategoryLimit = async (category: string, monthlyLimit: number) => {
+    try {
+      await setCategoryLimit(category, monthlyLimit);
+      showToast(`Tetto spesa per ${category} aggiornato! ⚠️`);
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -206,27 +274,7 @@ export default function DashboardPage() {
 
   useEffect(() => { void loadCalendarTask(); }, [loadCalendarTask]);
 
-  // Goals handlers
-  const addGoal = () => {
-    const name = newGoalName.trim();
-    const target = parseFloat(newGoalTarget);
-    const current = parseFloat(newGoalCurrent) || 0;
-    if (!name || isNaN(target) || target <= 0) { showToast('⚠️ Nome e obiettivo valido richiesti'); return; }
-    const updated = [...goals, { id: Date.now().toString(), name, current, target }];
-    setGoals(updated); persistGoals(updated);
-    setNewGoalName(''); setNewGoalCurrent(''); setNewGoalTarget('');
-    setShowGoalForm(false); showToast('✅ Obiettivo aggiunto!');
-  };
 
-  const removeGoal = (id: string) => {
-    const updated = goals.filter((g) => g.id !== id);
-    setGoals(updated); persistGoals(updated); showToast('🗑️ Obiettivo rimosso');
-  };
-
-  const updateGoalCurrent = (id: string, value: number) => {
-    const updated = goals.map((g) => g.id === id ? { ...g, current: value } : g);
-    setGoals(updated); persistGoals(updated);
-  };
 
   const handleDeleteMovement = async (entry: LedgerEntry) => {
     try {
@@ -335,30 +383,75 @@ export default function DashboardPage() {
             <div className="task-tape">TODAY&apos;S TASK: {dynamicTask}</div>
           </section>
 
-          {/* Side */}
+          {/* Side Stack */}
           <aside className="side-stack">
             <section className="neon-panel neon-magenta compact-stats">
-              <div>
-                <span className="panel-kicker">🧾 Sub/Mo</span>
-                <strong>{formatCurrency(data.monthlySubscriptionsTotal)}</strong>
-              </div>
-              <div>
-                <span className="panel-kicker">🟡 Rate Debiti/mese</span>
-                <strong>{formatCurrency(computeDebtTotal(data))}</strong>
+              <span className="panel-kicker">💳 IMPEGNI MENSILI</span>
+              <div className="stats-card-group">
+                <div className="stat-item-badge cyan">
+                  <span className="stat-item-icon">🔄</span>
+                  <div className="stat-item-info">
+                    <span className="stat-item-label">Abbonamenti / Mese</span>
+                    <span className="stat-item-value cyan">{formatCurrency(data.monthlySubscriptionsTotal)}</span>
+                  </div>
+                </div>
+                <div className="stat-item-badge yellow">
+                  <span className="stat-item-icon">🪙</span>
+                  <div className="stat-item-info">
+                    <span className="stat-item-label">Rate Debiti / Mese</span>
+                    <span className="stat-item-value yellow">{formatCurrency(computeDebtTotal(data))}</span>
+                  </div>
+                </div>
               </div>
             </section>
+
             <section className="neon-panel neon-green profile-panel">
-              <span className="panel-kicker">Profile</span>
-              <div className="avatar-ring">👤</div>
-              <strong>{profileAlias}</strong>
-              <small>{profileStatus}</small>
-              {email && <small className="profile-mail">{email}</small>}
+              <span className="panel-kicker">👤 PROFILO UTENTE</span>
+              <div className="profile-card-content">
+                <div className="avatar-ring-large">
+                  {profileAlias.charAt(0).toUpperCase()}
+                </div>
+                <div className="profile-info-group">
+                  <span className="profile-name">{profileAlias}</span>
+                  <div className={`profile-status-badge ${data.currentMonthClosed ? 'closed' : 'open'}`}>
+                    <span className="status-dot-pulse" />
+                    {profileStatus}
+                  </div>
+                  {email && <span className="profile-mail-text">📧 {email}</span>}
+                </div>
+              </div>
             </section>
           </aside>
         </div>
       )}
 
-      <div className="dashboard-grid">
+      {/* ADVANCED CHARTS & ANALYTICS */}
+      {data && (
+        <>
+          <CategoryCharts
+            expensesByCategory={expensesByCategory}
+            monthlyIncomes={data.monthlyIncomes}
+            monthlyExpenses={data.monthlyExpenses}
+            forecast={forecastData}
+          />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            <SavingsGoalsWidget
+              goals={backendGoals}
+              onAddGoal={handleAddSavingsGoal}
+              onUpdateGoal={handleUpdateSavingsGoal}
+              onDeposit={handleDepositSavingsGoal}
+              onDeleteGoal={handleDeleteSavingsGoal}
+            />
+            <CategoryLimitsWidget
+              expensesByCategory={expensesByCategory}
+              limits={categoryLimits}
+              onSetLimit={handleSetCategoryLimit}
+            />
+          </div>
+        </>
+      )}
+
+      <div className="dashboard-grid" style={{ marginTop: '1.5rem' }}>
         <section className="card">
           <h2>📅 Calendario Appuntamenti</h2>
           <CalendarWidget onError={showError} onToast={showToast} onEventsMutate={loadCalendarTask} />
@@ -394,72 +487,6 @@ export default function DashboardPage() {
           <section className="card donut-card">
             <h2>📊 BUDGET OVERVIEW</h2>
             <DonutChart segments={budgetSegments} />
-          </section>
-
-          {/* User-defined Savings Goals */}
-          <section className="card goals-card">
-            <div className="section-header">
-              <h2>💾 SAVINGS GOALS</h2>
-              <button className="btn btn-small btn-primary" onClick={() => setShowGoalForm((v) => !v)}>
-                {showGoalForm ? '✕ Chiudi' : '＋ Aggiungi'}
-              </button>
-            </div>
-
-            {showGoalForm && (
-              <div className="goal-add-form">
-                <div className="goal-form-row">
-                  <label>Nome obiettivo</label>
-                  <input type="text" placeholder="Es. Vacanze, Auto..." value={newGoalName} onChange={(e) => setNewGoalName(e.target.value)} />
-                </div>
-                <div className="goal-form-row">
-                  <label>Importo attuale (€)</label>
-                  <input type="number" placeholder="0" min="0" value={newGoalCurrent} onChange={(e) => setNewGoalCurrent(e.target.value)} />
-                </div>
-                <div className="goal-form-row">
-                  <label>Obiettivo target (€)</label>
-                  <input type="number" placeholder="1000" min="1" value={newGoalTarget} onChange={(e) => setNewGoalTarget(e.target.value)} />
-                </div>
-                <button className="btn btn-small" onClick={addGoal}>✅ Salva Obiettivo</button>
-              </div>
-            )}
-
-            <div className="goals-list">
-              {goals.length === 0 && !showGoalForm && (
-                <div className="goals-empty">
-                  <span>Nessun obiettivo salvato.</span>
-                  <span>Clicca <strong>＋ Aggiungi</strong> per iniziare!</span>
-                </div>
-              )}
-              {goals.map((goal) => {
-                const pct = clampPercentage((goal.current / goal.target) * 100);
-                const pctColor = pct >= 100 ? '#00ff88' : pct >= 60 ? '#ffdd00' : '#ff8800';
-                return (
-                  <div key={goal.id} className="goal-row-user">
-                    <div className="goal-row-header">
-                      <span className="goal-name">{goal.name}</span>
-                      <div className="goal-row-actions">
-                        <span className="goal-pct" style={{ color: pctColor }}>{pct.toFixed(0)}%</span>
-                        <button className="btn btn-small btn-danger" style={{ padding: '0.15rem 0.4rem' }} onClick={() => removeGoal(goal.id)}>✕</button>
-                      </div>
-                    </div>
-                    <div className="goal-track">
-                      <div className="goal-progress" style={{
-                        width: `${pct}%`,
-                        background: pct >= 100 ? 'linear-gradient(90deg,#00ff88,#00ffff)' : pct >= 60 ? 'linear-gradient(90deg,#ffdd00,#00ff88)' : 'linear-gradient(90deg,#ff00ff,#ffdd00)',
-                      }} />
-                    </div>
-                    <div className="goal-amounts">
-                      <span className="goal-current-input" title="Clicca per aggiornare" onClick={() => {
-                        const val = prompt('Aggiorna importo attuale (€):', goal.current.toString());
-                        if (val !== null) { const n = parseFloat(val); if (!isNaN(n)) updateGoalCurrent(goal.id, n); }
-                      }}>{formatCurrency(goal.current)}</span>
-                      <span className="goal-sep">/</span>
-                      <span className="goal-target">{formatCurrency(goal.target)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </section>
         </div>
       )}

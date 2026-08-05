@@ -1,8 +1,10 @@
 package com.example.calendaronline.config;
 
+import com.example.calendaronline.config.security.JwtAuthenticationFilter;
 import com.example.calendaronline.user.persistence.AppUserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +22,12 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(@Lazy JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -29,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/index.html", "/login.html", "/reset-password.html",
                     "/style.css", "/app.js", "/common.js", "/layout.js", "/dashboard.js").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/operator/users").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/operator/**").authenticated()
@@ -47,7 +56,8 @@ public class SecurityConfig {
                 response.setContentType("application/json");
                 response.setHeader("WWW-Authenticate", "");
                 response.getWriter().write("{\"error\":\"Unauthorized\"}");
-            }));
+            }))
+            .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

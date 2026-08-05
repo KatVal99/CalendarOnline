@@ -32,6 +32,17 @@ public class CalendarEventController {
         return calendarEventService.listByMonth(principal.getName(), year, month);
     }
 
+    @GetMapping("/next")
+    public CalendarEventDto next(Principal principal) {
+        return calendarEventService.getNextAppointment(principal.getName());
+    }
+
+    @GetMapping("/upcoming")
+    public List<CalendarEventDto> upcoming(@RequestParam(defaultValue = "5") int limit,
+                                           Principal principal) {
+        return calendarEventService.getUpcomingEvents(principal.getName(), limit);
+    }
+
     @PostMapping
     public CalendarEventDto create(@RequestBody CalendarEventRequest request,
                                    Principal principal) {

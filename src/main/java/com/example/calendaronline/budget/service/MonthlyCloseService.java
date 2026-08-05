@@ -47,7 +47,8 @@ public class MonthlyCloseService {
             "Chiusura automatica",
             month.atDay(1),
             month.toString(),
-            null
+            null,
+            "Chiusura"
         );
         budgetEventRepository.save(BudgetEventMapper.toEntity(event));
         monthlyReportEmailService.sendMonthlyReport(username, month);

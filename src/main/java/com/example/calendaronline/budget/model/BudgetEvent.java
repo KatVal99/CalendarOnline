@@ -11,7 +11,8 @@ public record BudgetEvent(
     String description,
     LocalDate eventDate,
     String yearMonth,
-    Integer durationMonths
+    Integer durationMonths,
+    String category
 ) {
 }
 

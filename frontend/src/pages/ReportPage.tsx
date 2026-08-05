@@ -185,10 +185,32 @@ export default function ReportPage() {
     ];
   }, [data, debtMonthly, selectedTrend]);
 
+  const handleExportCSV = () => {
+    if (!trend.length) return;
+    const headers = ['Mese', 'Entrate (€)', 'Spese (€)', 'Saldo Mensile (€)'];
+    const rows = trend.map((t) => [t.month, t.incomes.toFixed(2), t.expenses.toFixed(2), (t.incomes - t.expenses).toFixed(2)]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `report_mensile_${new Date().toISOString().substring(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="page report-page">
       <div className="page-header">
         <h1>📈 Report Mensile</h1>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-small btn-primary" onClick={handleExportCSV}>📥 Esporta CSV</button>
+          <button className="btn btn-small" onClick={handlePrint}>🖨️ Stampa / PDF</button>
+        </div>
       </div>
 
       {data && (

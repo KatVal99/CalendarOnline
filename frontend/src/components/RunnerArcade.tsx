@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { arcadeAudio } from '../utils/arcadeAudio';
 
 const W = 820;
 const H = 360;
@@ -171,8 +172,10 @@ export default function RunnerArcade() {
   const [lives, setLives] = useState(3);
   const [worldLevel, setWorldLevel] = useState(1);
   const [best, setBest] = useState(() => parseInt(localStorage.getItem('mario-hs') ?? '0', 10));
+  const [isMuted, setIsMuted] = useState(arcadeAudio.getMuted());
 
   const reset = useCallback(() => {
+    arcadeAudio.stopMusic();
     cancelAnimationFrame(frameRef.current);
     stateRef.current = initLevel(1);
     setScore(0);
@@ -186,6 +189,7 @@ export default function RunnerArcade() {
     const currLevel = stateRef.current.worldLevel || 1;
     stateRef.current = { ...initLevel(currLevel), phase: 'play' };
     setPhase('play');
+    arcadeAudio.startChiptuneMusic();
   }, []);
 
   const nextLevel = useCallback(() => {
@@ -202,6 +206,7 @@ export default function RunnerArcade() {
     stateRef.current = nextState;
     setWorldLevel(nextLvl);
     setPhase('play');
+    arcadeAudio.startChiptuneMusic();
   }, []);
 
   useEffect(() => {
@@ -216,6 +221,7 @@ export default function RunnerArcade() {
         p.vy = p.grounded ? JUMP : DOUBLE_JUMP;
         p.grounded = false;
         p.jumpsLeft -= 1;
+        arcadeAudio.playJump();
       }
     };
 
@@ -232,13 +238,19 @@ export default function RunnerArcade() {
   }, []);
 
   useEffect(() => {
-    if (phase !== 'play') return;
+    if (phase !== 'play') {
+      arcadeAudio.stopMusic();
+      return;
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const endRun = (won: boolean) => {
+      arcadeAudio.stopMusic();
+      if (won) arcadeAudio.playPowerup();
+      else arcadeAudio.playGameOver();
       const state = stateRef.current;
       state.phase = won ? 'win' : 'over';
       setPhase(state.phase);
@@ -717,9 +729,21 @@ export default function RunnerArcade() {
             <h2>🍄 SUPER MARIO PLATFORM</h2>
             <p>Scorrimento libero con nuvole stile NES autentiche e movimento dinamico!</p>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <span style={{ color: '#e40058', fontSize: '8px' }}>VITE: {'♥'.repeat(Math.max(0, lives))}</span>
-            <div className="game-controls-hint">← → / A D — MUOVI &nbsp;|&nbsp; ↑ / W / SPACE — SALTA &nbsp;|&nbsp; ↓ / S — GIÙ</div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              className="btn btn-small btn-yellow"
+              onClick={() => arcadeAudio.playTestSound()}
+              style={{ background: '#ffd700', color: '#000', fontWeight: 'bold' }}
+            >
+              🔔 PROVA AUDIO
+            </button>
+            <button
+              className="btn btn-small btn-primary"
+              onClick={() => setIsMuted(arcadeAudio.toggleMute())}
+            >
+              {isMuted ? '🔇 AUDIO: OFF' : '🔊 MUSIC: ON'}
+            </button>
+            <span style={{ color: '#e40058', fontSize: '11px', fontWeight: 'bold' }}>VITE: {'♥'.repeat(Math.max(0, lives))}</span>
           </div>
         </div>
 

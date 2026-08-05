@@ -52,7 +52,8 @@ public class MovementRetentionService {
                 "Saldo consolidato movimenti oltre 30 giorni",
                 cutoffDate,
                 null,
-                null
+                null,
+                "Carryover"
             );
             budgetEventRepository.save(BudgetEventMapper.toEntity(carryover));
         }

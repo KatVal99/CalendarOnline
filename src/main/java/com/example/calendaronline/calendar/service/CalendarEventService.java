@@ -30,6 +30,19 @@ public class CalendarEventService {
             .toList();
     }
 
+    public CalendarEventDto getNextAppointment(String username) {
+        List<CalendarEventDto> upcoming = getUpcomingEvents(username, 1);
+        return upcoming.isEmpty() ? null : upcoming.get(0);
+    }
+
+    public List<CalendarEventDto> getUpcomingEvents(String username, int limit) {
+        return calendarEventRepository.findByUsernameAndEventDateGreaterThanEqualOrderByEventDateAscEventTimeAscIdAsc(username, LocalDate.now())
+            .stream()
+            .limit(limit > 0 ? limit : 5)
+            .map(this::toDto)
+            .toList();
+    }
+
     public CalendarEventDto create(String username, CalendarEventRequest request) {
         validate(request);
         CalendarEventEntity entity = new CalendarEventEntity();

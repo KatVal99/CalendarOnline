@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CalendarEvent, CalendarEventType } from '../types';
-import { fetchCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../api/client';
+import { fetchCalendarEvents, fetchNextAppointment, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../api/client';
 
 interface Props {
   onError: (msg: string) => void;
@@ -36,10 +36,6 @@ function typeMeta(type: CalendarEventType) {
   return EVENT_TYPES.find((item) => item.value === type) ?? EVENT_TYPES[1];
 }
 
-function formatEventDate(date: string, time: string | null): string {
-  return time ? `${date} · ${time.slice(0, 5)}` : `${date} · Senza orario`;
-}
-
 function formatReminder(reminderMinutes: number | null): string {
   if (!reminderMinutes) return 'No reminder';
   if (reminderMinutes % 1440 === 0) return `${reminderMinutes / 1440}g prima`;
@@ -64,9 +60,12 @@ export default function CalendarWidget({ onError, onToast, onEventsMutate }: Pro
   const [reminderMinutes, setReminderMinutes] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
 
+  const [nextAppt, setNextAppt] = useState<CalendarEvent | null>(null);
+
   const loadEvents = async () => {
     try {
       setEvents(await fetchCalendarEvents(year, month));
+      setNextAppt(await fetchNextAppointment());
     } catch (e) {
       onError((e as Error).message);
     }
@@ -171,64 +170,113 @@ export default function CalendarWidget({ onError, onToast, onEventsMutate }: Pro
 
   const formatDate = (day: number) => `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
+  const formatItalianDate = (dateStr: string) => {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
   return (
     <div className="calendar-widget">
+      {nextAppt && (
+        <div className="next-appointment-banner">
+          <div className="next-appt-header">
+            <span className="next-badge">🔔 PROSSIMO APPUNTAMENTO IN ARRIVO</span>
+            <span className="next-date-pill">📅 {formatItalianDate(nextAppt.date)} {nextAppt.time ? `· ⏰ ${nextAppt.time.slice(0, 5)}` : ''}</span>
+          </div>
+          <div className="next-appt-body">
+            <h3 className="next-title">{nextAppt.title}</h3>
+            <div className="next-meta-row">
+              <span className={`event-badge ${typeMeta(nextAppt.eventType).colorClass}`}>
+                {typeMeta(nextAppt.eventType).label}
+              </span>
+              {nextAppt.reminderMinutes && (
+                <span className="next-reminder-tag">
+                  ⏰ Promemoria: {formatReminder(nextAppt.reminderMinutes)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="calendar-header">
-        <button className="btn btn-small" onClick={prevMonth}>◀</button>
+        <button className="btn btn-small" onClick={prevMonth} title="Mese precedente">◀</button>
         <span className="calendar-title">{MONTH_NAMES[month - 1]} {year}</span>
-        <button className="btn btn-small" onClick={nextMonth}>▶</button>
+        <button className="btn btn-small" onClick={nextMonth} title="Mese successivo">▶</button>
       </div>
 
       <div className="calendar-grid">
         {DAY_NAMES.map((d) => <div key={d} className="cal-day-header">{d}</div>)}
-        {cells.map((day, idx) => (
-          <div
-            key={idx}
-            className={[
-              'cal-cell',
-              day === null ? 'cal-empty' : '',
-              day === today ? 'cal-today' : '',
-              day !== null && eventDates.has(formatDate(day)) ? 'cal-has-event' : '',
-              day !== null && selectedDate === formatDate(day) ? 'cal-selected' : '',
-            ].filter(Boolean).join(' ')}
-            onClick={() => {
-              if (day === null) return;
-              setSelectedDate(formatDate(day));
-            }}
-          >
-            {day}
-            {day !== null && eventsByDate.has(formatDate(day)) && (
-              <span className={`cal-event-marker ${typeMeta((eventsByDate.get(formatDate(day)) ?? [])[0].eventType).colorClass}`} />
-            )}
-          </div>
-        ))}
+        {cells.map((day, idx) => {
+          const dayDateStr = day !== null ? formatDate(day) : null;
+          const dayEvents = dayDateStr ? eventsByDate.get(dayDateStr) : null;
+          const mainEventType = dayEvents && dayEvents.length > 0 ? dayEvents[0].eventType : null;
+
+          return (
+            <div
+              key={idx}
+              className={[
+                'cal-cell',
+                day === null ? 'cal-empty' : '',
+                day === today ? 'cal-today' : '',
+                day !== null && eventDates.has(formatDate(day)) ? 'cal-has-event' : '',
+                day !== null && selectedDate === formatDate(day) ? 'cal-selected' : '',
+              ].filter(Boolean).join(' ')}
+              onClick={() => {
+                if (day === null) return;
+                setSelectedDate(formatDate(day));
+              }}
+            >
+              <span className="cal-day-number">{day}</span>
+              {day !== null && mainEventType && (
+                <span className={`cal-event-marker marker-${mainEventType.toLowerCase()}`} title={`${dayEvents?.length} appuntamento/i`} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <form className="cal-form cal-form-advanced" onSubmit={handleSubmit}>
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required />
-        <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} />
-        <select value={eventType} onChange={(e) => setEventType(e.target.value as CalendarEventType)}>
-          {EVENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-        </select>
-        <select value={reminderMinutes} onChange={(e) => setReminderMinutes(e.target.value)}>
-          {REMINDER_OPTIONS.map((item) => <option key={item.value || 'none'} value={item.value}>{item.label}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="Descrizione appuntamento"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
+        <div className="cal-form-row">
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} required />
+          <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} />
+        </div>
+
+        <div className="cal-form-row">
+          <select value={eventType} onChange={(e) => setEventType(e.target.value as CalendarEventType)}>
+            {EVENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </select>
+          <select value={reminderMinutes} onChange={(e) => setReminderMinutes(e.target.value)}>
+            {REMINDER_OPTIONS.map((item) => <option key={item.value || 'none'} value={item.value}>{item.label}</option>)}
+          </select>
+        </div>
+
+        <div className="cal-form-row full-width">
+          <input
+            type="text"
+            placeholder="Descrizione appuntamento (es. Visita Medica)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
+        </div>
+
         <div className="calendar-form-actions">
-          <button className="btn" type="submit">{editingId !== null ? '✎ Salva modifica' : '+ Aggiungi'}</button>
-          {editingId !== null && <button className="btn btn-small btn-danger" type="button" onClick={resetForm}>Annulla</button>}
+          <button className="btn btn-primary btn-add-appt" type="submit">
+            {editingId !== null ? '✎ Salva Modifica Appuntamento' : '+ Aggiungi Appuntamento'}
+          </button>
+          {editingId !== null && (
+            <button className="btn btn-small btn-danger" type="button" onClick={resetForm}>
+              Annulla
+            </button>
+          )}
         </div>
       </form>
 
       {selectedDate && (
         <div className="calendar-selected-info">
-          <strong>{selectedDate}</strong>
+          <span>📅 Data selezionata: <strong>{formatItalianDate(selectedDate)}</strong></span>
           <span>{selectedDateEvents.length > 0 ? `${selectedDateEvents.length} appuntamento/i` : 'Nessun appuntamento in questo giorno'}</span>
         </div>
       )}
@@ -237,14 +285,14 @@ export default function CalendarWidget({ onError, onToast, onEventsMutate }: Pro
         <ul className="event-list">
           {selectedDateEvents.map((ev) => (
             <li key={ev.id} className={`event-item ${editingId === ev.id ? 'event-item-editing' : ''} ${typeMeta(ev.eventType).colorClass}`}>
-              <span className="event-date">{formatEventDate(ev.date, ev.time)}</span>
+              <span className="event-date">📅 {formatItalianDate(ev.date)} {ev.time ? `· ⏰ ${ev.time.slice(0, 5)}` : ''}</span>
               <div className="event-desc-block">
                 <span className="event-desc">{ev.title}</span>
-                <span className="event-meta">{typeMeta(ev.eventType).label} · {formatReminder(ev.reminderMinutes)}</span>
+                <span className="event-meta">{typeMeta(ev.eventType).label} {ev.reminderMinutes ? `· Promemoria: ${formatReminder(ev.reminderMinutes)}` : ''}</span>
               </div>
               <div className="event-actions">
-                <button className="btn btn-small btn-primary" type="button" onClick={() => handleEditEvent(ev)}>✎</button>
-                <button className="btn btn-small btn-danger" type="button" onClick={() => handleDeleteEvent(ev.id)}>✕</button>
+                <button className="btn btn-small btn-primary" type="button" onClick={() => handleEditEvent(ev)} title="Modifica">✎</button>
+                <button className="btn btn-small btn-danger" type="button" onClick={() => handleDeleteEvent(ev.id)} title="Elimina">✕</button>
               </div>
             </li>
           ))}

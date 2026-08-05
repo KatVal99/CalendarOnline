@@ -19,12 +19,12 @@ class BudgetEngineTest {
     void monthlyCloseSubtractsDebtsFlexiaAndSubscriptions() {
         BudgetEngine engine = new BudgetEngine();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("2500"), "Stipendio", LocalDate.now(), null, null),
-            new BudgetEvent("2", "mario", BudgetEventType.EXPENSE, new BigDecimal("300"), "Spesa alimentare", LocalDate.now(), null, null),
-            new BudgetEvent("3", "mario", BudgetEventType.SUBSCRIPTION_ADDED, new BigDecimal("20"), "Netflix", LocalDate.now(), null, null),
-            new BudgetEvent("4", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("100"), "Flexia", LocalDate.now(), "2026-06", null),
-            new BudgetEvent("5", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("1200"), "Monopola", LocalDate.now(), "2026-06", 6),
-            new BudgetEvent("6", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null)
+            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("2500"), "Stipendio", LocalDate.now(), null, null, null),
+            new BudgetEvent("2", "mario", BudgetEventType.EXPENSE, new BigDecimal("300"), "Spesa alimentare", LocalDate.now(), null, null, null),
+            new BudgetEvent("3", "mario", BudgetEventType.SUBSCRIPTION_ADDED, new BigDecimal("20"), "Netflix", LocalDate.now(), null, null, null),
+            new BudgetEvent("4", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("100"), "Flexia", LocalDate.now(), "2026-06", null, null),
+            new BudgetEvent("5", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("1200"), "Monopola", LocalDate.now(), "2026-06", 6, null),
+            new BudgetEvent("6", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -38,9 +38,9 @@ class BudgetEngineTest {
     void debtEndingInCurrentMonthIsRemovedFromActiveDebtsAfterMonthlyClose() {
         BudgetEngine engine = new BudgetEngine();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null),
-            new BudgetEvent("2", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("150"), "Prestito breve", LocalDate.now(), "2026-12", 1),
-            new BudgetEvent("3", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-12", null)
+            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null, null),
+            new BudgetEvent("2", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("150"), "Prestito breve", LocalDate.now(), "2026-12", 1, null),
+            new BudgetEvent("3", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-12", null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -52,10 +52,10 @@ class BudgetEngineTest {
     void removedDebtIsNotChargedOnMonthlyClose() {
         BudgetEngine engine = new BudgetEngine();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("2500"), "Stipendio", LocalDate.now(), null, null),
-            new BudgetEvent("2", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("120"), "Carta", LocalDate.now(), "2026-06", 12),
-            new BudgetEvent("3", "mario", BudgetEventType.DEBT_REMOVED, null, "Carta", LocalDate.now(), null, null),
-            new BudgetEvent("4", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null)
+            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("2500"), "Stipendio", LocalDate.now(), null, null, null),
+            new BudgetEvent("2", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("120"), "Carta", LocalDate.now(), "2026-06", 12, null),
+            new BudgetEvent("3", "mario", BudgetEventType.DEBT_REMOVED, null, "Carta", LocalDate.now(), null, null, null),
+            new BudgetEvent("4", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -67,10 +67,10 @@ class BudgetEngineTest {
     void removedFlexiaIsNotShownAndNotCharged() {
         BudgetEngine engine = new BudgetEngine();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null),
-            new BudgetEvent("2", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("150"), "Flexia", LocalDate.now(), "2026-06", null),
-            new BudgetEvent("3", "mario", BudgetEventType.FLEXIA_REMOVED, null, "Flexia rimossa", LocalDate.now(), "2026-06", null),
-            new BudgetEvent("4", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null)
+            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null, null),
+            new BudgetEvent("2", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("150"), "Flexia", LocalDate.now(), "2026-06", null, null),
+            new BudgetEvent("3", "mario", BudgetEventType.FLEXIA_REMOVED, null, "Flexia rimossa", LocalDate.now(), "2026-06", null, null),
+            new BudgetEvent("4", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), "2026-06", null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -83,8 +83,8 @@ class BudgetEngineTest {
         BudgetEngine engine = new BudgetEngine();
         LocalDate oldDate = LocalDate.now().minusDays(40);
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("carry", "mario", BudgetEventType.BALANCE_CARRYOVER, new BigDecimal("680"), "Saldo consolidato", oldDate, null, null),
-            new BudgetEvent("recent-expense", "mario", BudgetEventType.EXPENSE, new BigDecimal("80"), "Cena", LocalDate.now(), null, null)
+            new BudgetEvent("carry", "mario", BudgetEventType.BALANCE_CARRYOVER, new BigDecimal("680"), "Saldo consolidato", oldDate, null, null, null),
+            new BudgetEvent("recent-expense", "mario", BudgetEventType.EXPENSE, new BigDecimal("80"), "Cena", LocalDate.now(), null, null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -96,7 +96,7 @@ class BudgetEngineTest {
         BudgetEngine engine = new BudgetEngine();
         String currentMonth = YearMonth.now().toString();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), currentMonth, null)
+            new BudgetEvent("1", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), currentMonth, null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -108,7 +108,7 @@ class BudgetEngineTest {
         BudgetEngine engine = new BudgetEngine();
         String previousMonth = YearMonth.now().minusMonths(1).toString();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("100"), "Debito vecchio", LocalDate.now(), previousMonth, 1)
+            new BudgetEvent("1", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("100"), "Debito vecchio", LocalDate.now(), previousMonth, 1, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
@@ -121,9 +121,9 @@ class BudgetEngineTest {
         String currentMonth = YearMonth.now().toString();
         String previousMonth = YearMonth.now().minusMonths(1).toString();
         List<BudgetEvent> events = List.of(
-            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null),
-            new BudgetEvent("2", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("120"), "Flexia", LocalDate.now(), previousMonth, null),
-            new BudgetEvent("3", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), currentMonth, null)
+            new BudgetEvent("1", "mario", BudgetEventType.INCOME, new BigDecimal("1000"), "Stipendio", LocalDate.now(), null, null, null),
+            new BudgetEvent("2", "mario", BudgetEventType.FLEXIA_SET, new BigDecimal("120"), "Flexia", LocalDate.now(), previousMonth, null, null),
+            new BudgetEvent("3", "mario", BudgetEventType.MONTHLY_CLOSE, null, "Close", LocalDate.now(), currentMonth, null, null)
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);

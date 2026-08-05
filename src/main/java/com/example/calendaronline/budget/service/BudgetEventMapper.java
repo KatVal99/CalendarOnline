@@ -20,6 +20,7 @@ public final class BudgetEventMapper {
         entity.setEventDate(event.eventDate());
         entity.setYearMonth(event.yearMonth());
         entity.setDurationMonths(event.durationMonths());
+        entity.setCategory(event.category());
         entity.setCreatedAt(LocalDateTime.now());
         return entity;
     }
@@ -33,7 +34,8 @@ public final class BudgetEventMapper {
             entity.getDescription(),
             entity.getEventDate(),
             entity.getYearMonth(),
-            entity.getDurationMonths()
+            entity.getDurationMonths(),
+            entity.getCategory()
         );
     }
 }

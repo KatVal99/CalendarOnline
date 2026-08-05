@@ -85,24 +85,62 @@ export function logout(): void {
 export const fetchDashboard = () => getJson<DashboardData>('/budget/dashboard');
 
 // ---- INCOMES ----
-// MoneyRequest: { amount, description, date }
-export const createIncome = (description: string, amount: number) =>
+// MoneyRequest: { amount, description, date, category }
+export const createIncome = (description: string, amount: number, category?: string) =>
   postJson('/budget/incomes', {
     description,
     amount,
     date: new Date().toISOString().substring(0, 10),
+    category: category || 'Stipendio',
   });
 export const deleteIncome = (id: string) => deleteRequest(`/budget/incomes/${id}`);
 
 // ---- EXPENSES ----
-// MoneyRequest: { amount, description, date }
-export const createExpense = (description: string, amount: number) =>
+// MoneyRequest: { amount, description, date, category }
+export const createExpense = (description: string, amount: number, category?: string) =>
   postJson('/budget/expenses', {
     description,
     amount,
     date: new Date().toISOString().substring(0, 10),
+    category: category || 'Altro',
   });
 export const deleteExpense = (id: string) => deleteRequest(`/budget/expenses/${id}`);
+
+// ---- SAVINGS GOALS ----
+export interface SavingsGoalTransaction {
+  id: string;
+  savingsGoalId: string;
+  username: string;
+  amount: number;
+  note?: string;
+  eventId?: string;
+  createdAt: string;
+}
+
+export const fetchSavingsGoals = () => getJson<any[]>('/budget/savings-goals');
+export const createSavingsGoal = (name: string, targetAmount: number, targetDate?: string, icon?: string) =>
+  postJson('/budget/savings-goals', { name, targetAmount, targetDate, icon });
+export const updateSavingsGoal = (id: string, name: string, targetAmount: number, targetDate?: string, icon?: string) =>
+  putJson(`/budget/savings-goals/${id}`, { name, targetAmount, targetDate, icon });
+export const deleteSavingsGoal = (id: string) => deleteRequest(`/budget/savings-goals/${id}`);
+export const depositSavingsGoal = (id: string, amount: number) =>
+  postJson(`/budget/savings-goals/${id}/deposit`, { amount });
+
+export const fetchSavingsGoalTransactions = (goalId: string) =>
+  getJson<SavingsGoalTransaction[]>(`/budget/savings-goals/${goalId}/transactions`);
+export const deleteSavingsGoalTransaction = (goalId: string, txId: string) =>
+  deleteRequest(`/budget/savings-goals/${goalId}/transactions/${txId}`);
+export const updateSavingsGoalTransaction = (goalId: string, txId: string, amount: number, note?: string) =>
+  putJson(`/budget/savings-goals/${goalId}/transactions/${txId}`, { amount, note });
+
+// ---- CATEGORY LIMITS & SUMMARY ----
+export const fetchCategoryLimits = () => getJson<any[]>('/budget/category-limits');
+export const setCategoryLimit = (category: string, monthlyLimit: number) =>
+  postJson('/budget/category-limits', { category, monthlyLimit });
+export const fetchCategorySummary = () => getJson<any>('/budget/categories/summary');
+
+// ---- CASHFLOW FORECAST ----
+export const fetchForecast = () => getJson<any>('/budget/forecast');
 
 // ---- DEBTS ----
 // DebtRequest: { label, totalAmount, startMonth, durationMonths }
@@ -137,6 +175,10 @@ export const deleteMonthlyClose = () => deleteRequest('/budget/monthly-close');
 // CalendarEventDto: { id: Long, date, time, title }   ← "title" non "description"
 export const fetchCalendarEvents = (year: number, month: number) =>
   getJson<CalendarEvent[]>(`/calendar/events?year=${year}&month=${month}`);
+export const fetchNextAppointment = () =>
+  getJson<CalendarEvent | null>('/calendar/events/next');
+export const fetchUpcomingAppointments = (limit = 5) =>
+  getJson<CalendarEvent[]>(`/calendar/events/upcoming?limit=${limit}`);
 // CalendarEventRequest: { date, time, title, eventType, reminderMinutes }
 export const createCalendarEvent = (
   date: string,
