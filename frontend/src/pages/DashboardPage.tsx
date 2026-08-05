@@ -345,6 +345,15 @@ export default function DashboardPage() {
 
   if (loading) return <div className="loading"><span className="loading-pulse">⏳ Caricamento...</span></div>;
 
+  if (!data) return (
+    <div className="page dashboard-page" style={{ textAlign: 'center', paddingTop: '3rem' }}>
+      <h2>⚠️ Impossibile caricare i dati</h2>
+      <p style={{ margin: '1rem 0', color: '#a0a0c0' }}>Il server potrebbe essere in fase di avvio. Riprova tra qualche secondo.</p>
+      <button className="btn btn-primary" onClick={load} style={{ marginTop: '1rem' }}>🔄 Riprova Caricamento</button>
+      {error && <ErrorModal title={error.title} message={error.message} onClose={() => setError(null)} />}
+    </div>
+  );
+
   return (
     <div className="page dashboard-page">
       <div className="page-header">
