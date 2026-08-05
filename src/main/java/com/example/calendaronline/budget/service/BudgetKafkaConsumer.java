@@ -14,7 +14,7 @@ public class BudgetKafkaConsumer {
         this.budgetEventRepository = budgetEventRepository;
     }
 
-    @KafkaListener(topics = "${app.kafka.topic}")
+    @KafkaListener(topics = "${app.kafka.topic}", autoStartup = "${spring.kafka.listener.auto-startup:false}")
     public void consume(BudgetEvent event) {
         budgetEventRepository.save(BudgetEventMapper.toEntity(event));
     }
