@@ -20,6 +20,13 @@ function authHeaders(): HeadersInit {
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401) {
+    localStorage.removeItem('budgetAuthHeader');
+    localStorage.removeItem('budgetEmail');
+    if (typeof window !== 'undefined' && !window.location.pathname.endsWith('/login')) {
+      window.location.href = '/login';
+    }
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
     throw new Error(`HTTP ${res.status}: ${text}`);
