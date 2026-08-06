@@ -448,6 +448,31 @@ export default function CoinCatcherArcade() {
         )}
       </div>
 
+      {phase === 'play' && (
+        <div className="mobile-touch-controls" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '0.75rem' }}>
+          <button
+            className="btn btn-primary"
+            style={{ padding: '0.8rem 1.6rem', fontSize: '14px', touchAction: 'manipulation' }}
+            onMouseDown={() => { keysRef.current.add('ArrowLeft'); }}
+            onMouseUp={() => { keysRef.current.delete('ArrowLeft'); }}
+            onTouchStart={(e) => { e.preventDefault(); keysRef.current.add('ArrowLeft'); }}
+            onTouchEnd={(e) => { e.preventDefault(); keysRef.current.delete('ArrowLeft'); }}
+          >
+            ◀ SINISTRA
+          </button>
+          <button
+            className="btn btn-primary"
+            style={{ padding: '0.8rem 1.6rem', fontSize: '14px', touchAction: 'manipulation' }}
+            onMouseDown={() => { keysRef.current.add('ArrowRight'); }}
+            onMouseUp={() => { keysRef.current.delete('ArrowRight'); }}
+            onTouchStart={(e) => { e.preventDefault(); keysRef.current.add('ArrowRight'); }}
+            onTouchEnd={(e) => { e.preventDefault(); keysRef.current.delete('ArrowRight'); }}
+          >
+            DESTRA ▶
+          </button>
+        </div>
+      )}
+
       <div className="game-legend">
         <div className="legend-alien-row"><span style={{ color: '#ffd700' }}>€</span> Moneta: +10 pt</div>
         <div className="legend-alien-row"><span style={{ color: '#00ffff' }}>💎</span> Gemma Bonus: +30 pt</div>

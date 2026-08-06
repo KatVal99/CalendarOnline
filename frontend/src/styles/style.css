@@ -1390,6 +1390,62 @@ table tr:hover td {
   .forecast-chart {
     overflow-x: auto !important;
   }
+
+  /* ── Arcade / Games mobile responsiveness ── */
+  .canvas-wrapper, .game-canvas-wrapper, .runner-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+  }
+  .game-canvas, canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    touch-action: manipulation !important;
+  }
+  .game-tabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.35rem !important;
+    justify-content: center !important;
+  }
+  .game-tabs .btn {
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.6rem !important;
+    flex: 1 1 auto !important;
+  }
+  .mobile-touch-controls {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    justify-content: center !important;
+    margin-top: 0.5rem !important;
+    width: 100% !important;
+  }
+  .mobile-touch-controls .btn {
+    font-size: 0.85rem !important;
+    padding: 0.7rem 0.9rem !important;
+    flex: 1 1 auto !important;
+    min-width: 70px !important;
+  }
+  .sudoku-grid {
+    grid-template-columns: repeat(9, minmax(28px, 1fr)) !important;
+    grid-template-rows: repeat(9, minmax(28px, 1fr)) !important;
+  }
+  .sudoku-axis-top {
+    grid-template-columns: repeat(9, minmax(28px, 1fr)) !important;
+  }
+  .sudoku-axis-left {
+    grid-template-rows: repeat(9, minmax(28px, 1fr)) !important;
+  }
+  .sudoku-layout {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .sudoku-sidepanel {
+    width: 100% !important;
+  }
 }
 
 /* Extra small phones (< 360px) */

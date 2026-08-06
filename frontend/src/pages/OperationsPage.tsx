@@ -48,6 +48,9 @@ export default function OperationsPage() {
 
   const CATEGORIES = ['Alimentari', 'Svago', 'Bollette', 'Casa', 'Trasporti', 'Salute', 'Stipendio', 'Abbonamenti', 'Altro'];
 
+  // Loading states
+  const [submitting, setSubmitting] = useState(false);
+
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const showError = (msg: string) => setError({ title: 'Errore', message: msg });
 
@@ -68,30 +71,84 @@ export default function OperationsPage() {
   // Handlers
   const addIncome = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await createIncome(incomeDesc, parseFloat(incomeAmt), incomeCat); showToast('Entrata aggiunta ✅'); setIncomeDesc(''); setIncomeAmt(''); load(); }
-    catch (err) { showError((err as Error).message); }
+    setSubmitting(true);
+    try {
+      await createIncome(incomeDesc, parseFloat(incomeAmt), incomeCat);
+      showToast('Entrata aggiunta ✅');
+      setIncomeDesc('');
+      setIncomeAmt('');
+      load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   const addExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await createExpense(expenseDesc, parseFloat(expenseAmt), expenseCat); showToast('Spesa aggiunta ✅'); setExpenseDesc(''); setExpenseAmt(''); load(); }
-    catch (err) { showError((err as Error).message); }
+    setSubmitting(true);
+    try {
+      await createExpense(expenseDesc, parseFloat(expenseAmt), expenseCat);
+      showToast('Spesa aggiunta ✅');
+      setExpenseDesc('');
+      setExpenseAmt('');
+      load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   const addDebt = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await createDebt(debtLabel, parseFloat(debtTotalAmt), debtStart, parseInt(debtDuration));
-      showToast('Debito aggiunto ✅'); setDebtLabel(''); setDebtTotalAmt(''); setDebtStart(''); setDebtDuration(''); load();
-    } catch (err) { showError((err as Error).message); }
+      showToast('Debito aggiunto ✅');
+      setDebtLabel('');
+      setDebtTotalAmt('');
+      setDebtStart('');
+      setDebtDuration('');
+      load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   const addFlexia = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await createFlexia(flexiaMonth, parseFloat(flexiaAmt)); showToast('Flexia impostata ✅'); setFlexiaMonth(''); setFlexiaAmt(''); load(); }
-    catch (err) { showError((err as Error).message); }
+    setSubmitting(true);
+    try {
+      await createFlexia(flexiaMonth, parseFloat(flexiaAmt));
+      showToast('Flexia impostata ✅');
+      setFlexiaMonth('');
+      setFlexiaAmt('');
+      load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   const addSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await createSubscription(subLabel, parseFloat(subCost)); showToast('Abbonamento aggiunto ✅'); setSubLabel(''); setSubCost(''); load(); }
-    catch (err) { showError((err as Error).message); }
+    setSubmitting(true);
+    try {
+      await createSubscription(subLabel, parseFloat(subCost));
+      showToast('Abbonamento aggiunto ✅');
+      setSubLabel('');
+      setSubCost('');
+      load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -126,7 +183,9 @@ export default function OperationsPage() {
             <select value={incomeCat} onChange={e => setIncomeCat(e.target.value)}>
               {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
-            <button className="btn btn-green" type="submit">+ Aggiungi Entrata</button>
+            <button className="btn btn-green" type="submit" disabled={submitting}>
+              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Entrata'}
+            </button>
           </form>
         </section>
 
@@ -138,7 +197,9 @@ export default function OperationsPage() {
             <select value={expenseCat} onChange={e => setExpenseCat(e.target.value)}>
               {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
-            <button className="btn btn-red" type="submit">+ Aggiungi Spesa</button>
+            <button className="btn btn-red" type="submit" disabled={submitting}>
+              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Spesa'}
+            </button>
           </form>
         </section>
 
@@ -147,18 +208,22 @@ export default function OperationsPage() {
           <form onSubmit={addDebt}>
             <input type="text" placeholder="Etichetta (es. Unicredit, Volo)" value={debtLabel} onChange={e => setDebtLabel(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Importo TOTALE €" value={debtTotalAmt} onChange={e => setDebtTotalAmt(e.target.value)} required />
-            <input type="month" placeholder="Mese inizio (YYYY-MM)" value={debtStart} onChange={e => setDebtStart(e.target.value)} required />
+            <input type="text" placeholder="Mese inizio (YYYY-MM, es. 2026-08)" value={debtStart} onChange={e => setDebtStart(e.target.value)} required pattern="\d{4}-\d{2}" />
             <input type="number" placeholder="Durata (mesi)" value={debtDuration} onChange={e => setDebtDuration(e.target.value)} required />
-            <button className="btn btn-yellow" type="submit">+ Aggiungi Debito</button>
+            <button className="btn btn-yellow" type="submit" disabled={submitting}>
+              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Debito'}
+            </button>
           </form>
         </section>
 
         <section className="neon-panel neon-yellow form-card">
           <h2>🟠 Valore Flexia</h2>
           <form onSubmit={addFlexia}>
-            <input type="month" value={flexiaMonth} onChange={e => setFlexiaMonth(e.target.value)} required />
+            <input type="text" placeholder="Mese (YYYY-MM, es. 2026-08)" value={flexiaMonth} onChange={e => setFlexiaMonth(e.target.value)} required pattern="\d{4}-\d{2}" />
             <input type="number" step="0.01" placeholder="Importo €" value={flexiaAmt} onChange={e => setFlexiaAmt(e.target.value)} required />
-            <button className="btn btn-orange" type="submit">+ Imposta Flexia</button>
+            <button className="btn btn-orange" type="submit" disabled={submitting}>
+              {submitting ? '⏳ Salvataggio...' : '+ Imposta Flexia'}
+            </button>
           </form>
         </section>
 
@@ -167,7 +232,9 @@ export default function OperationsPage() {
           <form onSubmit={addSubscription}>
             <input type="text" placeholder="Etichetta (es. Netflix, Gym)" value={subLabel} onChange={e => setSubLabel(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Costo mensile €" value={subCost} onChange={e => setSubCost(e.target.value)} required />
-            <button className="btn btn-blue" type="submit">+ Aggiungi Abbonamento</button>
+            <button className="btn btn-blue" type="submit" disabled={submitting}>
+              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Abbonamento'}
+            </button>
           </form>
         </section>
       </div>

@@ -779,6 +779,66 @@ export default function RunnerArcade() {
               </div>
           )}
         </div>
+
+        {phase === 'play' && (
+          <div className="mobile-touch-controls" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.8rem 1.2rem', fontSize: '14px', touchAction: 'manipulation' }}
+              onMouseDown={() => { keysRef.current['arrowleft'] = true; }}
+              onMouseUp={() => { keysRef.current['arrowleft'] = false; }}
+              onTouchStart={(e) => { e.preventDefault(); keysRef.current['arrowleft'] = true; }}
+              onTouchEnd={(e) => { e.preventDefault(); keysRef.current['arrowleft'] = false; }}
+            >
+              ◀ SINISTRA
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.8rem 1.2rem', fontSize: '14px', touchAction: 'manipulation' }}
+              onMouseDown={() => { keysRef.current['arrowright'] = true; }}
+              onMouseUp={() => { keysRef.current['arrowright'] = false; }}
+              onTouchStart={(e) => { e.preventDefault(); keysRef.current['arrowright'] = true; }}
+              onTouchEnd={(e) => { e.preventDefault(); keysRef.current['arrowright'] = false; }}
+            >
+              DESTRA ▶
+            </button>
+            <button
+              className="btn btn-yellow"
+              style={{ padding: '0.8rem 1.4rem', fontSize: '14px', background: '#ffe600', color: '#000', fontWeight: 'bold', touchAction: 'manipulation' }}
+              onClick={() => {
+                const p = stateRef.current.player;
+                if (p.jumpsLeft > 0) {
+                  p.vy = p.grounded ? JUMP : DOUBLE_JUMP;
+                  p.grounded = false;
+                  p.jumpsLeft -= 1;
+                  arcadeAudio.playJump();
+                }
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const p = stateRef.current.player;
+                if (p.jumpsLeft > 0) {
+                  p.vy = p.grounded ? JUMP : DOUBLE_JUMP;
+                  p.grounded = false;
+                  p.jumpsLeft -= 1;
+                  arcadeAudio.playJump();
+                }
+              }}
+            >
+              🦘 SALTO
+            </button>
+            <button
+              className="btn"
+              style={{ padding: '0.8rem 1rem', fontSize: '14px', background: '#1c3144', color: '#fff', touchAction: 'manipulation' }}
+              onMouseDown={() => { keysRef.current['arrowdown'] = true; }}
+              onMouseUp={() => { keysRef.current['arrowdown'] = false; }}
+              onTouchStart={(e) => { e.preventDefault(); keysRef.current['arrowdown'] = true; }}
+              onTouchEnd={(e) => { e.preventDefault(); keysRef.current['arrowdown'] = false; }}
+            >
+              ⬇ GIÙ
+            </button>
+          </div>
+        )}
       </div>
   );
 }
