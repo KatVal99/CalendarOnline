@@ -5,7 +5,10 @@ import com.example.calendaronline.budget.persistence.BudgetEventRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Component
+@ConditionalOnProperty(name = "spring.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class BudgetKafkaConsumer {
 
     private final BudgetEventRepository budgetEventRepository;
