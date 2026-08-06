@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -36,6 +36,24 @@ export default function CategoryCharts({
   forecast
 }: Props) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [containerWidth, setContainerWidth] = useState(300);
+
+  useEffect(() => {
+    // Get actual container width for responsive charts
+    const updateWidth = () => {
+      const width = Math.min(window.innerWidth - 60, 500);
+      setContainerWidth(width);
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  const isMobile = containerWidth < 400;
+  const chartHeight = isMobile ? 220 : 280;
+  const pieSize = Math.min(containerWidth, isMobile ? 220 : 280);
+  const pieInnerRadius = isMobile ? pieSize * 0.28 : pieSize * 0.3;
+  const pieOuterRadius = isMobile ? pieSize * 0.42 : pieSize * 0.45;
 
   // Format pie chart data
   const pieData = Object.entries(expensesByCategory)
@@ -120,25 +138,24 @@ export default function CategoryCharts({
         {pieData.length === 0 ? (
           <p style={{ color: '#aaa', fontSize: '1rem' }}>Nessuna spesa registrata nel mese corrente.</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
 
             {/* Donut graphic with central total summary */}
-            <div style={{ width: '100%', height: 320, position: 'relative' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={75}
-                    outerRadius={115}
-                    paddingAngle={4}
-                    dataKey="value"
-                    stroke="rgba(14, 14, 28, 0.9)"
-                    strokeWidth={3}
-                    onMouseEnter={(_, index) => setActiveCategory(pieData[index].name)}
-                    onMouseLeave={() => setActiveCategory(null)}
-                  >
+            <div style={{ width: pieSize, height: pieSize, position: 'relative', margin: '0 auto' }}>
+              <PieChart width={pieSize} height={pieSize}>
+                <Pie
+                  data={pieData}
+                  cx={pieSize / 2}
+                  cy={pieSize / 2}
+                  innerRadius={pieInnerRadius}
+                  outerRadius={pieOuterRadius}
+                  paddingAngle={3}
+                  dataKey="value"
+                  stroke="rgba(14, 14, 28, 0.9)"
+                  strokeWidth={2}
+                  onMouseEnter={(_, index) => setActiveCategory(pieData[index].name)}
+                  onMouseLeave={() => setActiveCategory(null)}
+                >
                     {pieData.map((entry, index) => {
                       const color = COLORS[index % COLORS.length];
                       const isHovered = activeCategory === entry.name;
@@ -258,12 +275,12 @@ export default function CategoryCharts({
           <h3 style={{ color: '#fff', marginBottom: '1.25rem', fontSize: '1.25rem', fontWeight: 700 }}>
             📈 Confronto Mensile Entrate vs Uscite
           </h3>
-          <div style={{ width: '100%', height: 320 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
+          <div style={{ width: '100%', height: chartHeight, minHeight: chartHeight }}>
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <BarChart data={barData} margin={isMobile ? { left: -15, right: 5 } : undefined}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="month" stroke="#bbb" tick={{ fill: '#ccc', fontSize: 12 }} />
-                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: 12 }} />
+                <XAxis dataKey="month" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} />
+                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} width={isMobile ? 50 : 60} />
                 <Tooltip
                   contentStyle={{ background: 'rgba(12,12,24,0.95)', border: '1px solid var(--cyan)', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`€ ${Number(value ?? 0).toFixed(2)}`, '']}
@@ -295,12 +312,12 @@ export default function CategoryCharts({
               Delta Netto Mensile: € {forecast.netMonthlyChange.toFixed(2)}
             </span>
           </div>
-          <div style={{ width: '100%', height: 280 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={forecastData}>
+          <div style={{ width: '100%', height: chartHeight, minHeight: chartHeight }}>
+            <ResponsiveContainer width="100%" height={chartHeight}>
+              <AreaChart data={forecastData} margin={isMobile ? { left: -15, right: 5 } : undefined}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="label" stroke="#bbb" tick={{ fill: '#ccc', fontSize: 12 }} />
-                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: 12 }} />
+                <XAxis dataKey="label" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} />
+                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} width={isMobile ? 55 : 60} />
                 <Tooltip
                   contentStyle={{ background: 'rgba(12,12,24,0.95)', border: '1px solid var(--magenta)', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`€ ${Number(value ?? 0).toFixed(2)}`, 'Saldo Stimato']}
