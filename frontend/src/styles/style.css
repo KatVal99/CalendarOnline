@@ -167,14 +167,31 @@ body::after { display: none !important; }
 .btn:hover:not(:disabled) { background: rgba(230,36,41,0.18) !important; transform: translateY(-1px); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-small { padding: 0.4rem 0.85rem !important; font-size: 0.85rem !important; font-weight: 700 !important; }
-.btn-primary { border-color: var(--cyan) !important; color: var(--cyan) !important; box-shadow: 0 0 10px rgba(56,189,248,0.4) !important; }
-.btn-primary:hover:not(:disabled) { background: rgba(56,189,248,0.2) !important; }
-.btn-danger { border-color: var(--red) !important; color: #ffffff !important; background: var(--red) !important; box-shadow: var(--shadow-red) !important; }
-.btn-danger:hover:not(:disabled) { background: #d01419 !important; box-shadow: 0 0 16px rgba(230,36,41,0.8) !important; }
+
+/* SOLID SPIDEY RED PRIMARY / UPDATE / SUBMIT BUTTONS */
+.btn-primary, .btn-submit, .btn-update, .btn-red, button[type="submit"], .btn-action-primary, .form-card .btn {
+  background: linear-gradient(180deg, #ff2a4b 0%, #e62429 60%, #b81015 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  box-shadow: 0 0 14px rgba(230, 36, 41, 0.8), 0 4px 10px rgba(0,0,0,0.5) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+.btn-primary:hover:not(:disabled), .btn-submit:hover:not(:disabled), .btn-update:hover:not(:disabled), .btn-red:hover:not(:disabled), button[type="submit"]:hover:not(:disabled), .form-card .btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ff4d66 0%, #ff2a4b 60%, #e62429 100%) !important;
+  border-color: #ffcc00 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 0 20px rgba(255, 42, 75, 1) !important;
+}
+
+.btn-danger { border-color: #ffffff !important; color: #ffffff !important; background: #e62429 !important; box-shadow: var(--shadow-red) !important; }
+.btn-danger:hover:not(:disabled) { background: #ff2a4b !important; box-shadow: 0 0 16px rgba(230,36,41,0.8) !important; }
 .btn-green { border-color: var(--green) !important; color: var(--green) !important; box-shadow: var(--shadow-green) !important; }
-.btn-red { border-color: var(--red) !important; color: #ffffff !important; background: rgba(230,36,41,0.3) !important; box-shadow: var(--shadow-red) !important; }
 .btn-yellow { border-color: var(--yellow) !important; color: var(--yellow) !important; box-shadow: var(--shadow-yellow) !important; }
-.btn-blue { border-color: var(--blue) !important; color: #ffffff !important; background: rgba(11,94,215,0.3) !important; box-shadow: var(--shadow-blue) !important; }
+.btn-blue { border-color: var(--blue) !important; color: #ffffff !important; background: rgba(11,94,215,0.6) !important; box-shadow: var(--shadow-blue) !important; }
 .btn-orange { border-color: var(--orange) !important; color: var(--orange) !important; }
 
 /* ---- GLASSMORPHISM CARDS & PANELS ---- */
@@ -1327,9 +1344,31 @@ table tr:hover td {
   }
 
   input, select, textarea {
-    font-size: 16px !important;
-    padding: 0.8rem 0.9rem !important;
-    border-radius: 10px !important;
+    font-size: 14px !important;
+    padding: 0.45rem 0.65rem !important;
+    border-radius: 6px !important;
+    height: 38px !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  label {
+    font-size: 0.72rem !important;
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.1rem !important;
+    color: var(--text-dim) !important;
+  }
+
+  .form-card form {
+    gap: 0.35rem !important;
+  }
+
+  .form-card {
+    padding: 0.65rem 0.75rem !important;
+  }
+
+  .ops-forms-grid, .ops-tables-grid {
+    gap: 0.6rem !important;
+    margin-bottom: 0.85rem !important;
   }
 
   .dashboard-hero-grid,
@@ -1362,16 +1401,16 @@ table tr:hover td {
   }
 
   .card, .neon-panel {
-    padding: 0.6rem 0.75rem !important;
+    padding: 0.65rem 0.75rem !important;
     border-radius: 8px !important;
     margin-bottom: 0.5rem !important;
   }
 
   .btn-danger, .btn-small.btn-danger {
-    min-width: 40px !important;
-    min-height: 40px !important;
-    font-size: 1.1rem !important;
-    border-radius: 8px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    font-size: 1.05rem !important;
+    border-radius: 6px !important;
   }
 }
 
