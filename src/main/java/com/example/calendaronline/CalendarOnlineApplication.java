@@ -2,10 +2,9 @@ package com.example.calendaronline;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude = { KafkaAutoConfiguration.class })
+@SpringBootApplication(excludeName = { "org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration" })
 @EnableScheduling
 public class CalendarOnlineApplication {
 
