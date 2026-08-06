@@ -4,7 +4,11 @@
 
 import type { DashboardData, CalendarEvent } from '../types';
 
-const isNativeApp = typeof window !== 'undefined' && window.location.protocol === 'file:';
+const isNativeApp = typeof window !== 'undefined' && (
+  window.location.protocol === 'file:' ||
+  (window as any).Capacitor !== undefined ||
+  (window.location.hostname === 'localhost' && (!window.location.port || window.location.port === '80' || window.location.port === '443'))
+);
 const envApiUrl = (import.meta as any).env?.VITE_API_BASE_URL;
 const BASE_URL = envApiUrl || (isNativeApp ? 'https://calendaronline.onrender.com/api' : '/api');
 
