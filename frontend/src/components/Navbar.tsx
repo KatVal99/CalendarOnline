@@ -78,25 +78,11 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Hanging Upside-Down Spiderman Animation directly under the header badge */}
+        {/* Hanging Upside-Down Spiderman Animation using exact Marvel Pixel Sprite */}
         <div className="hanging-spidey-container">
           <div className="web-thread" />
           <div className="hanging-spidey-body">
-            {/* Upside Down Chibi Spiderman Pixel Sprite */}
-            <svg viewBox="0 0 32 36" className="hanging-spidey-svg">
-              {/* Head */}
-              <rect x="8" y="18" width="16" height="14" rx="3" fill="#e62429" stroke="#000" strokeWidth="1.5" />
-              {/* Upside down Spidey Eyes */}
-              <polygon points="11,26 17,28 14,21" fill="#fff" stroke="#000" strokeWidth="1" />
-              <polygon points="21,26 15,28 18,21" fill="#fff" stroke="#000" strokeWidth="1" />
-              {/* Suit Body upside down */}
-              <rect x="11" y="8" width="10" height="10" fill="#0b5ed7" stroke="#000" strokeWidth="1" />
-              <rect x="13" y="10" width="6" height="6" fill="#e62429" />
-              {/* Spider chest logo */}
-              <rect x="15" y="12" width="2" height="3" fill="#000" />
-              {/* Legs grasping web thread above */}
-              <path d="M9 8 L13 2 M23 8 L19 2" stroke="#e62429" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
+            <img src="./hanging-spidey.png" className="hanging-spidey-img" alt="Marvel Hanging Spidey Pixel" />
           </div>
         </div>
 
