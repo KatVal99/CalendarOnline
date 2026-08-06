@@ -1336,6 +1336,73 @@ table tr:hover td {
     display: none !important;
   }
 
+  /* Ensure container and grids never exceed 100% viewport width */
+  .main-content, .page, .dashboard-page, .ops-forms-grid, .ops-tables-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .card, .neon-panel, .form-card, .total-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0.6rem 0.65rem !important;
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* 1. CALENDARIO FIT MOBILE */
+  .calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    width: 100% !important;
+  }
+
+  .cal-cell {
+    min-height: 38px !important;
+    padding: 0.15rem 0.1rem !important;
+    border-radius: 4px !important;
+  }
+
+  .cal-day-number {
+    font-size: 0.82rem !important;
+  }
+
+  .cal-day-header {
+    font-size: 0.7rem !important;
+    padding: 0.15rem 0 !important;
+  }
+
+  /* 2. REGISTRO MOVIMENTI, DEBITI ATTIVI, ABBONAMENTI ATTIVI, FLEXIA TABLES FIT MOBILE */
+  .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border: 1px solid rgba(230, 36, 41, 0.3) !important;
+    border-radius: 6px !important;
+    margin-top: 0.4rem !important;
+  }
+
+  .data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.78rem !important;
+  }
+
+  .data-table th {
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.4rem !important;
+    white-space: nowrap !important;
+  }
+
+  .data-table td {
+    font-size: 0.78rem !important;
+    padding: 0.4rem 0.4rem !important;
+    white-space: nowrap !important;
+  }
+
   input, select, textarea {
     font-size: 14px !important;
     padding: 0.45rem 0.65rem !important;
@@ -1391,12 +1458,6 @@ table tr:hover td {
 
   .total-value {
     font-size: 1.15rem !important;
-  }
-
-  .card, .neon-panel {
-    padding: 0.65rem 0.75rem !important;
-    border-radius: 8px !important;
-    margin-bottom: 0.5rem !important;
   }
 
   .btn-danger, .btn-small.btn-danger {
