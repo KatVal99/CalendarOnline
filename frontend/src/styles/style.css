@@ -179,8 +179,8 @@ body::after { display: none !important; }
 
 /* ---- GLASSMORPHISM CARDS & PANELS ---- */
 .card, .neon-panel, .total-card {
-  background: rgba(17, 20, 42, 0.92) !important;
-  backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+  background: rgba(10, 14, 30, 0.68) !important;
+  backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;
   border-radius: 12px !important; border: 2px solid var(--spidey-red) !important;
   padding: 1.35rem !important; box-shadow: var(--shadow-red) !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
@@ -195,7 +195,7 @@ body::after { display: none !important; }
 
 /* ---- TOTALS GRID ---- */
 .totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
-.total-card { background: var(--panel); border: 2px solid var(--border2); border-radius: 10px; padding: 1.25rem; text-align: center; box-shadow: 0 0 12px var(--magenta); }
+.total-card { background: rgba(10, 14, 30, 0.68) !important; border: 2px solid var(--border2); border-radius: 10px; padding: 1.25rem; text-align: center; box-shadow: 0 0 12px var(--magenta); }
 .total-label { color: var(--text-dim); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
 .total-value { font-size: 1.5rem; font-weight: 800; }
 .positive { color: var(--green); }
@@ -210,9 +210,9 @@ body::after { display: none !important; }
 
 /* ---- NEON PANELS ---- */
 .neon-panel {
-  background: linear-gradient(160deg, rgba(14,14,28,0.97), rgba(5,5,8,0.93));
+  background: rgba(10, 14, 30, 0.68) !important;
   border: 2px solid var(--border); border-radius: 12px; padding: 1.2rem;
-  box-shadow: var(--shadow-green); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-green); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .neon-magenta { border-color: var(--magenta) !important; animation: pulseGlowMagenta 4s ease-in-out infinite !important; }
@@ -1053,13 +1053,23 @@ table tr:hover td {
   height: 44px;
   border-radius: 50%;
   background: #060713;
-  box-shadow: 0 0 12px #ffcc00, inset 0 0 6px #e62429;
+  box-shadow: 0 0 12px #ff8c00, inset 0 0 6px #e62429;
+  border: 2px solid #ffcc00;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
+  overflow: hidden;
   transition: transform 0.2s ease;
+}
+
+.spidey-circle-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .spidey-circle-avatar:hover {

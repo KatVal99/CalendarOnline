@@ -38,15 +38,9 @@ export default function Navbar() {
         {/* Top Header Row matching Spidey Tracker Reference UI */}
         <div className="tracker-header-row">
           
-          {/* Top Left: Orange Ring Circle Avatar (as highlighted in red in user image) */}
-          <div className="spidey-circle-avatar" title="Spidey Avatar">
-            <svg viewBox="0 0 40 40" className="spidey-avatar-svg">
-              <circle cx="20" cy="20" r="18" fill="#e62429" stroke="#ffcc00" strokeWidth="3" />
-              <circle cx="20" cy="20" r="14" fill="#ba1016" />
-              {/* Spidey Lenses */}
-              <polygon points="10,16 18,18 14,25" fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
-              <polygon points="30,16 22,18 26,25" fill="#ffffff" stroke="#000000" strokeWidth="1.5" />
-            </svg>
+          {/* Top Left: Spidey Circle Avatar using exact Pixel Spidey Mask Image */}
+          <div className="spidey-circle-avatar" title="Spidey Pixel Avatar">
+            <img src="./spidey-icon.png" className="spidey-circle-avatar-img" alt="Spidey Icon" />
           </div>
 
           {/* Top Center: Pixel Spidey Tracker Pill Badge */}

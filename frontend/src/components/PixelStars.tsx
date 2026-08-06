@@ -87,15 +87,11 @@ export default function PixelStars() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       if (customImg && customImg.complete && customImg.naturalWidth > 0) {
-        // Draw custom user background image cover
+        // Draw custom user background image cover full screen
         const scale = Math.max(canvas.width / customImg.naturalWidth, canvas.height / customImg.naturalHeight);
         const x = (canvas.width - customImg.naturalWidth * scale) / 2;
         const y = (canvas.height - customImg.naturalHeight * scale) / 2;
         ctx.drawImage(customImg, x, y, customImg.naturalWidth * scale, customImg.naturalHeight * scale);
-        
-        // Dark overlay tint for readability
-        ctx.fillStyle = 'rgba(6, 7, 19, 0.45)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
         const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
         bg.addColorStop(0, '#060713');
