@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+  PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   AreaChart, Area
 } from 'recharts';
@@ -175,7 +175,6 @@ export default function CategoryCharts({
                   </Pie>
                   <Tooltip content={<CustomPieTooltip />} />
                 </PieChart>
-              </ResponsiveContainer>
 
               {/* Central Text Badge inside Donut hole */}
               <div style={{
@@ -190,10 +189,10 @@ export default function CategoryCharts({
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
+                <span style={{ fontSize: isMobile ? '0.6rem' : '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                   {activeCategory ? activeCategory : 'TOTALE SPESE'}
                 </span>
-                <strong style={{ fontSize: '1.35rem', color: '#fff', fontWeight: 800, marginTop: '0.1rem' }}>
+                <strong style={{ fontSize: isMobile ? '1rem' : '1.35rem', color: '#fff', fontWeight: 800, marginTop: '0.1rem' }}>
                   € {activeCategory
                     ? (expensesByCategory[activeCategory] ? Math.abs(expensesByCategory[activeCategory]).toFixed(2) : '0.00')
                     : totalExpenses.toFixed(2)}
@@ -272,15 +271,14 @@ export default function CategoryCharts({
       {/* BAR CHART: Monthly Incomes vs Expenses */}
       {barData.length > 0 && (
         <div className="neon-panel neon-cyan" style={{ padding: '1.75rem' }}>
-          <h3 style={{ color: '#fff', marginBottom: '1.25rem', fontSize: '1.25rem', fontWeight: 700 }}>
+          <h3 style={{ color: '#fff', marginBottom: '1.25rem', fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 700 }}>
             📈 Confronto Mensile Entrate vs Uscite
           </h3>
-          <div style={{ width: '100%', height: chartHeight, minHeight: chartHeight }}>
-            <ResponsiveContainer width="100%" height={chartHeight}>
-              <BarChart data={barData} margin={isMobile ? { left: -15, right: 5 } : undefined}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="month" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} />
-                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} width={isMobile ? 50 : 60} />
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <BarChart width={containerWidth} height={chartHeight} data={barData} margin={{ left: 0, right: 10, top: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="month" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 9 : 12 }} />
+              <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 9 : 12 }} width={isMobile ? 45 : 60} />
                 <Tooltip
                   contentStyle={{ background: 'rgba(12,12,24,0.95)', border: '1px solid var(--cyan)', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`€ ${Number(value ?? 0).toFixed(2)}`, '']}
@@ -288,7 +286,6 @@ export default function CategoryCharts({
                 <Bar dataKey="Entrate" fill="#00ff88" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="Uscite" fill="#ff3355" radius={[6, 6, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       )}
@@ -312,19 +309,17 @@ export default function CategoryCharts({
               Delta Netto Mensile: € {forecast.netMonthlyChange.toFixed(2)}
             </span>
           </div>
-          <div style={{ width: '100%', height: chartHeight, minHeight: chartHeight }}>
-            <ResponsiveContainer width="100%" height={chartHeight}>
-              <AreaChart data={forecastData} margin={isMobile ? { left: -15, right: 5 } : undefined}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="label" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} />
-                <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 10 : 12 }} width={isMobile ? 55 : 60} />
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <AreaChart width={containerWidth} height={chartHeight} data={forecastData} margin={{ left: 0, right: 10, top: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="label" stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 9 : 12 }} />
+              <YAxis stroke="#bbb" tick={{ fill: '#ccc', fontSize: isMobile ? 9 : 12 }} width={isMobile ? 50 : 60} />
                 <Tooltip
                   contentStyle={{ background: 'rgba(12,12,24,0.95)', border: '1px solid var(--magenta)', borderRadius: '8px', color: '#fff' }}
                   formatter={(value: any) => [`€ ${Number(value ?? 0).toFixed(2)}`, 'Saldo Stimato']}
                 />
                 <Area type="monotone" dataKey="balance" stroke="#ff00ff" fill="#ff00ff" fillOpacity={0.25} />
               </AreaChart>
-            </ResponsiveContainer>
           </div>
         </div>
       )}

@@ -44,6 +44,19 @@ export default function SudokuArcade() {
   const current = PUZZLES[seed % PUZZLES.length];
   const [board, setBoard] = useState<string[]>(() => chunkBoard(current.puzzle));
   const [selected, setSelected] = useState<number | null>(null);
+  const [cellSize, setCellSize] = useState(44);
+
+  // Calcola la dimensione delle celle in base allo schermo
+  useEffect(() => {
+    const updateSize = () => {
+      const maxWidth = window.innerWidth - 40; // padding
+      const maxCellSize = Math.floor((maxWidth - 30) / 9); // 30px per bordi e gap
+      setCellSize(Math.min(44, Math.max(28, maxCellSize)));
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   const fixed = useMemo(
       () => new Set(chunkBoard(current.puzzle).map((v, i) => (v !== '0' ? i : -1)).filter((i) => i >= 0)),
@@ -118,14 +131,14 @@ export default function SudokuArcade() {
           </div>
         </div>
 
-        <div className="sudoku-layout" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div className="sudoku-layout" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', width: '100%' }}>
           {/* GRIGLIA PRINCIPALE */}
-          <div className="sudoku-board-wrap" style={{ flex: '0 0 auto' }}>
-            <div className="sudoku-axis-labels sudoku-axis-top" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 44px)', textAlign: 'center', marginBottom: '4px', color: '#00f0ff', fontSize: '11px', fontWeight: 'bold' }}>
+          <div className="sudoku-board-wrap" style={{ width: '100%', maxWidth: `${cellSize * 9 + 30}px` }}>
+            <div className="sudoku-axis-labels sudoku-axis-top" style={{ display: 'grid', gridTemplateColumns: `repeat(9, ${cellSize}px)`, textAlign: 'center', marginBottom: '4px', marginLeft: '20px', color: '#00f0ff', fontSize: cellSize < 35 ? '9px' : '11px', fontWeight: 'bold' }}>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => <span key={n}>{n}</span>)}
             </div>
-            <div className="sudoku-main-grid-wrap" style={{ display: 'flex', gap: '6px' }}>
-              <div className="sudoku-axis-labels sudoku-axis-left" style={{ display: 'grid', gridTemplateRows: 'repeat(9, 44px)', alignItems: 'center', color: '#00f0ff', fontSize: '11px', fontWeight: 'bold' }}>
+            <div className="sudoku-main-grid-wrap" style={{ display: 'flex', gap: '4px' }}>
+              <div className="sudoku-axis-labels sudoku-axis-left" style={{ display: 'grid', gridTemplateRows: `repeat(9, ${cellSize}px)`, alignItems: 'center', color: '#00f0ff', fontSize: cellSize < 35 ? '9px' : '11px', fontWeight: 'bold', width: '16px' }}>
                 {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'].map((label) => <span key={label}>{label}</span>)}
               </div>
 
@@ -133,8 +146,8 @@ export default function SudokuArcade() {
                   className="sudoku-grid"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(9, 44px)',
-                    gridTemplateRows: 'repeat(9, 44px)',
+                    gridTemplateColumns: `repeat(9, ${cellSize}px)`,
+                    gridTemplateRows: `repeat(9, ${cellSize}px)`,
                     gap: '1px',
                     background: '#002b36',
                     border: '2px solid #00f0ff',
@@ -189,7 +202,7 @@ export default function SudokuArcade() {
                             border: 'none',
                             borderBottom,
                             borderRight,
-                            fontSize: '1.2rem',
+                            fontSize: cellSize < 35 ? '0.9rem' : '1.2rem',
                             fontWeight: isFixed ? 'bold' : '500',
                             cursor: isFixed ? 'default' : 'pointer',
                             display: 'flex',
@@ -197,6 +210,7 @@ export default function SudokuArcade() {
                             justifyContent: 'center',
                             transition: 'all 0.15s ease',
                             outline: 'none',
+                            padding: 0,
                           }}
                           onClick={() => setSelected(index)}
                       >
@@ -209,7 +223,7 @@ export default function SudokuArcade() {
           </div>
 
           {/* PANNELLO DI CONTROLLO COMPATTO */}
-          <div className="sudoku-sidepanel" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div className="sudoku-sidepanel" style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {/* Pad numerico 3x3 stile calcolatrice/arcade */}
             <div>
               <span style={{ fontSize: '0.75rem', color: '#00f0ff', letterSpacing: '1px', fontWeight: 'bold' }}>TASTIERA NUMERICA</span>
@@ -218,7 +232,7 @@ export default function SudokuArcade() {
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '8px',
+                    gap: '6px',
                     marginTop: '8px',
                   }}
               >
@@ -228,8 +242,8 @@ export default function SudokuArcade() {
                         className="btn btn-small sudoku-num-btn"
                         type="button"
                         style={{
-                          padding: '12px 0',
-                          fontSize: '1.25rem',
+                          padding: '10px 0',
+                          fontSize: '1.1rem',
                           fontWeight: 'bold',
                           background: '#0a2236',
                           color: '#00f0ff',
@@ -247,7 +261,7 @@ export default function SudokuArcade() {
             </div>
 
             {/* Azioni rapide */}
-            <div className="sudoku-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div className="sudoku-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               <button className="btn btn-small btn-danger" type="button" style={{ background: '#ff0055', color: '#fff', padding: '10px' }} onClick={() => setCell('0')}>
                 🗑 Cancella
               </button>

@@ -184,6 +184,14 @@ export default function RunnerArcade() {
     setPhase('idle');
   }, []);
 
+  // CLEANUP: Ferma la musica quando si esce dal componente
+  useEffect(() => {
+    return () => {
+      arcadeAudio.stopMusic();
+      cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
   const start = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
     const currLevel = stateRef.current.worldLevel || 1;
