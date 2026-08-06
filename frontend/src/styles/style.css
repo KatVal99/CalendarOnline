@@ -156,36 +156,29 @@ body::after { display: none !important; }
 }
 
 /* ---- BUTTONS ---- */
-.btn {
+.btn, .btn-primary, .btn-submit, .btn-update, .btn-red, button[type="submit"], .btn-action-primary, .form-card .btn {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif !important;
-  font-size: 0.95rem !important; font-weight: 700 !important;
-  padding: 0.6rem 1.25rem !important;
-  border: 2px solid var(--border) !important; background: transparent; color: #ffffff !important;
-  cursor: pointer; border-radius: 8px !important; box-shadow: var(--shadow-red);
-  transition: all 0.2s ease !important; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-}
-.btn:hover:not(:disabled) { background: rgba(230,36,41,0.18) !important; transform: translateY(-1px); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-small { padding: 0.4rem 0.85rem !important; font-size: 0.85rem !important; font-weight: 700 !important; }
-
-/* SOLID SPIDEY RED PRIMARY / UPDATE / SUBMIT BUTTONS */
-.btn-primary, .btn-submit, .btn-update, .btn-red, button[type="submit"], .btn-action-primary, .form-card .btn {
+  font-size: 0.92rem !important; font-weight: 800 !important;
+  padding: 0.55rem 1.1rem !important;
   background: linear-gradient(180deg, #ff2a4b 0%, #e62429 60%, #b81015 100%) !important;
   color: #ffffff !important;
   border: 2px solid #ffffff !important;
-  font-weight: 800 !important;
-  font-size: 0.95rem !important;
+  cursor: pointer; border-radius: 8px !important;
   box-shadow: 0 0 14px rgba(230, 36, 41, 0.8), 0 4px 10px rgba(0,0,0,0.5) !important;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+  transition: all 0.2s ease !important; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
 }
 
-.btn-primary:hover:not(:disabled), .btn-submit:hover:not(:disabled), .btn-update:hover:not(:disabled), .btn-red:hover:not(:disabled), button[type="submit"]:hover:not(:disabled), .form-card .btn:hover:not(:disabled) {
+.btn:hover:not(:disabled), .btn-primary:hover:not(:disabled), .btn-submit:hover:not(:disabled), .btn-update:hover:not(:disabled), .btn-red:hover:not(:disabled), button[type="submit"]:hover:not(:disabled), .form-card .btn:hover:not(:disabled) {
   background: linear-gradient(180deg, #ff4d66 0%, #ff2a4b 60%, #e62429 100%) !important;
   border-color: #ffcc00 !important;
   color: #ffffff !important;
   transform: translateY(-1px) scale(1.02) !important;
   box-shadow: 0 0 20px rgba(255, 42, 75, 1) !important;
 }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-small { padding: 0.35rem 0.75rem !important; font-size: 0.8rem !important; font-weight: 700 !important; }
 
 .btn-danger { border-color: #ffffff !important; color: #ffffff !important; background: #e62429 !important; box-shadow: var(--shadow-red) !important; }
 .btn-danger:hover:not(:disabled) { background: #ff2a4b !important; box-shadow: 0 0 16px rgba(230,36,41,0.8) !important; }

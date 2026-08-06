@@ -358,7 +358,7 @@ export default function DashboardPage() {
     <div className="page dashboard-page">
       <div className="page-header">
         <h1>🏙️ Dashboard Spidey</h1>
-        <button className="btn" onClick={load}>🔄 Aggiorna</button>
+        <button className="btn btn-primary" onClick={load}>🔄 Aggiorna</button>
       </div>
 
       {data && (
