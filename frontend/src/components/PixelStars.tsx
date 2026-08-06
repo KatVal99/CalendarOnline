@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface WebNode { x: number; y: number; glow: number; radius: number; color: string }
 interface WebSegment { a: WebNode; b: WebNode; elbowX: number; elbowY: number; pulse: number; speed: number; color: string }
@@ -7,6 +7,15 @@ const SPIDER_COLORS = ['#ff2a4b', '#0b5ed7', '#ffcc00', '#ffffff'];
 
 export default function PixelStars() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [userBg, setUserBg] = useState<string | null>(() => localStorage.getItem('spideyBgImage'));
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setUserBg(localStorage.getItem('spideyBgImage'));
+    };
+    window.addEventListener('spidey-bg-updated', handleStorage);
+    return () => window.removeEventListener('spidey-bg-updated', handleStorage);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,6 +26,21 @@ export default function PixelStars() {
     let animId = 0;
     let nodes: WebNode[] = [];
     let segments: WebSegment[] = [];
+
+    let customImg: HTMLImageElement | null = null;
+    const bgSrc = userBg || './background.jpg';
+
+    const img = new Image();
+    img.src = bgSrc;
+    img.onload = () => {
+      customImg = img;
+    };
+    img.onerror = () => {
+      // Fallback try background.png or custom-bg.png
+      const fallbackImg = new Image();
+      fallbackImg.src = './background.png';
+      fallbackImg.onload = () => { customImg = fallbackImg; };
+    };
 
     const rebuild = () => {
       canvas.width = window.innerWidth;
@@ -62,16 +86,28 @@ export default function PixelStars() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      bg.addColorStop(0, '#060713');
-      bg.addColorStop(0.5, '#0e1124');
-      bg.addColorStop(1, '#080914');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (customImg && customImg.complete && customImg.naturalWidth > 0) {
+        // Draw custom user background image cover
+        const scale = Math.max(canvas.width / customImg.naturalWidth, canvas.height / customImg.naturalHeight);
+        const x = (canvas.width - customImg.naturalWidth * scale) / 2;
+        const y = (canvas.height - customImg.naturalHeight * scale) / 2;
+        ctx.drawImage(customImg, x, y, customImg.naturalWidth * scale, customImg.naturalHeight * scale);
+        
+        // Dark overlay tint for readability
+        ctx.fillStyle = 'rgba(6, 7, 19, 0.45)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        bg.addColorStop(0, '#060713');
+        bg.addColorStop(0.5, '#0e1124');
+        bg.addColorStop(1, '#080914');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       segments.forEach((segment) => {
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 42, 75, 0.12)';
+        ctx.strokeStyle = 'rgba(255, 42, 75, 0.16)';
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(segment.a.x, segment.a.y);
@@ -139,7 +175,7 @@ export default function PixelStars() {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', rebuild);
     };
-  }, []);
+  }, [userBg]);
 
-  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.95 }} />;
+  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.98 }} />;
 }
