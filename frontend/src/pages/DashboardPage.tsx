@@ -450,6 +450,7 @@ export default function DashboardPage() {
               onUpdateGoal={handleUpdateSavingsGoal}
               onDeposit={handleDepositSavingsGoal}
               onDeleteGoal={handleDeleteSavingsGoal}
+              onRefresh={load}
             />
             <CategoryLimitsWidget
               expensesByCategory={expensesByCategory}

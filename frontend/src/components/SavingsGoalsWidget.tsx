@@ -22,9 +22,10 @@ interface Props {
   onUpdateGoal?: (goalId: string, name: string, targetAmount: number, targetDate?: string, icon?: string) => Promise<void>;
   onDeposit: (goalId: string, amount: number) => Promise<void>;
   onDeleteGoal: (goalId: string) => Promise<void>;
+  onRefresh?: () => void;
 }
 
-export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onDeposit, onDeleteGoal }: Props) {
+export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onDeposit, onDeleteGoal, onRefresh }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
@@ -76,7 +77,7 @@ export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onD
     if (!confirm("Sei sicuro di voler eliminare questo versamento? L'importo verrà rimosso dal salvadanaio e restituito al tuo saldo.")) return;
     await deleteSavingsGoalTransaction(goalId, txId);
     await loadTransactions(goalId);
-
+    onRefresh?.(); // Trigger parent balance update
   };
 
   const handleUpdateTransaction = async (goalId: string, txId: string) => {
@@ -84,7 +85,7 @@ export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onD
     await updateSavingsGoalTransaction(goalId, txId, parseFloat(editTxAmount), editTxNote);
     setEditingTxId(null);
     await loadTransactions(goalId);
-
+    onRefresh?.(); // Trigger parent balance update
   };
 
   const openQuotaModal = (goal: SavingsGoal, quotaInfo: any) => {
