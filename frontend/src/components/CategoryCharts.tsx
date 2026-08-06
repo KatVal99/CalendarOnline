@@ -93,8 +93,8 @@ export default function CategoryCharts({
   };
 
   return (
-    <div className="category-charts-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
-      
+    <div className="category-charts-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem', width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+
       {/* DONUT CHART: Expenses by Category */}
       <div className="neon-panel neon-cyan" style={{ padding: '1.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -120,8 +120,8 @@ export default function CategoryCharts({
         {pieData.length === 0 ? (
           <p style={{ color: '#aaa', fontSize: '1rem' }}>Nessuna spesa registrata nel mese corrente.</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'center' }}>
-            
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1.5rem', alignItems: 'center' }}>
+
             {/* Donut graphic with central total summary */}
             <div style={{ width: '100%', height: 320, position: 'relative' }}>
               <ResponsiveContainer width="100%" height="100%">

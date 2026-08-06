@@ -201,7 +201,7 @@ export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onD
       {goals.length === 0 ? (
         <p style={{ color: '#aaa', fontSize: '1rem' }}>Nessun salvadanaio attivo. Creane uno per iniziare a risparmiare per un obiettivo!</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))', gap: '1.25rem' }}>
           {goals.map((goal) => {
             const percent = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100));
             const quotaInfo = calculateMonthlyQuota(goal);

@@ -29,17 +29,19 @@
   --radius: 8px;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; max-width: 100%; }
 
 html, body {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   background: #060713 url('./background.jpg') no-repeat center center fixed !important;
   background-size: cover !important;
   color: var(--text);
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
-  overflow-x: hidden;
   position: relative;
 }
 
@@ -192,7 +194,7 @@ body::after { display: none !important; }
   background: rgba(10, 14, 30, 0.68) !important;
   backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important;
   border-radius: 12px !important; border: 2px solid var(--spidey-red) !important;
-  padding: 1.35rem !important; box-shadow: var(--shadow-red) !important;
+  padding: 1.25rem; box-shadow: var(--shadow-red) !important;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
 }
 .card:hover, .neon-panel:hover { transform: translateY(-2px); }
@@ -347,6 +349,9 @@ body::after { display: none !important; }
   flex-direction: column;
   gap: 1.25rem;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .next-appointment-banner {
@@ -432,8 +437,12 @@ body::after { display: none !important; }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cal-day-header {
@@ -451,14 +460,17 @@ body::after { display: none !important; }
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 54px;
-  padding: 0.4rem 0.2rem;
+  min-height: 42px;
+  aspect-ratio: 1;
+  padding: 0.25rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .cal-cell:hover:not(.cal-empty) {
@@ -468,7 +480,7 @@ body::after { display: none !important; }
 }
 
 .cal-day-number {
-  font-size: 1.4rem;
+  font-size: clamp(0.8rem, 3vw, 1.4rem);
   font-weight: 700;
   color: #ffffff;
 }
@@ -537,7 +549,8 @@ body::after { display: none !important; }
 
 .cal-form-row {
   display: flex;
-  gap: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
 .cal-form-row > * {
@@ -674,12 +687,12 @@ label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 
 
 /* ---- OPERATIONS PAGE ---- */
 .totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
-.total-card { padding: 1.25rem !important; }
+.total-card { padding: 1.25rem; }
 .total-label { font-size: 0.85rem !important; font-weight: 700 !important; letter-spacing: 0.5px !important; text-transform: uppercase !important; margin-bottom: 0.4rem !important; color: var(--text-dim) !important; }
 .total-value { font-size: 1.6rem !important; font-weight: 800 !important; font-family: 'Outfit', sans-serif !important; }
 
 .ops-forms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
-.form-card { padding: 1.25rem !important; }
+.form-card { padding: 1.25rem; }
 .form-card h2 { font-size: 1.05rem !important; margin-bottom: 0.85rem !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding-bottom: 0.5rem !important; }
 .form-card form { display: flex; flex-direction: column; gap: 0.6rem; }
 .form-card input, .form-card select {
@@ -1266,10 +1279,18 @@ table tr:hover td {
 
 /* 3. SMARTPHONE & MOBILE UX (< 768px) — NATIVE APP EXPERIENCE */
 @media (max-width: 768px) {
+  html, body, #root {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
 
   .main-content {
-    padding: 100px 0.65rem 95px !important;
+    padding: 70px 0.35rem 3.5rem !important;
+    width: 100% !important;
     max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
 
   .spidey-tracker-navbar {
@@ -1287,10 +1308,10 @@ table tr:hover td {
 
   .nav-links {
     position: fixed !important;
-    bottom: 28px !important; left: 0 !important; right: 0 !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
     top: auto !important;
     z-index: 10000 !important;
-    height: 58px !important;
+    height: 54px !important;
     background: rgba(6, 7, 19, 0.98) !important;
     border-top: 2px solid var(--spidey-red) !important;
     display: flex !important;
@@ -1327,6 +1348,7 @@ table tr:hover td {
   .nav-icon {
     font-size: 1.2rem !important;
   }
+
   .nav-text {
     display: block !important;
     font-size: 0.65rem !important;
@@ -1336,99 +1358,21 @@ table tr:hover td {
     display: none !important;
   }
 
-  /* Ensure container and grids never exceed 100% viewport width */
-  .main-content, .page, .dashboard-page, .ops-forms-grid, .ops-tables-grid {
+  .page, .dashboard-page, .operations-page, .report-page {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  .card, .neon-panel, .form-card, .total-card {
+  .card, .neon-panel, .form-card, .total-card, .chart-card, .donut-card, .goals-card {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding: 0.6rem 0.65rem !important;
+    padding: 0.45rem 0.5rem !important;
+    margin-bottom: 0.45rem !important;
     border-radius: 8px !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  /* 1. CALENDARIO FIT MOBILE */
-  .calendar-grid {
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-    gap: 2px !important;
-    width: 100% !important;
-  }
-
-  .cal-cell {
-    min-height: 38px !important;
-    padding: 0.15rem 0.1rem !important;
-    border-radius: 4px !important;
-  }
-
-  .cal-day-number {
-    font-size: 0.82rem !important;
-  }
-
-  .cal-day-header {
-    font-size: 0.7rem !important;
-    padding: 0.15rem 0 !important;
-  }
-
-  /* 2. REGISTRO MOVIMENTI, DEBITI ATTIVI, ABBONAMENTI ATTIVI, FLEXIA TABLES FIT MOBILE */
-  .table-responsive {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    border: 1px solid rgba(230, 36, 41, 0.3) !important;
-    border-radius: 6px !important;
-    margin-top: 0.4rem !important;
-  }
-
-  .data-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    font-size: 0.78rem !important;
-  }
-
-  .data-table th {
-    font-size: 0.7rem !important;
-    padding: 0.35rem 0.4rem !important;
-    white-space: nowrap !important;
-  }
-
-  .data-table td {
-    font-size: 0.78rem !important;
-    padding: 0.4rem 0.4rem !important;
-    white-space: nowrap !important;
-  }
-
-  input, select, textarea {
-    font-size: 14px !important;
-    padding: 0.45rem 0.65rem !important;
-    border-radius: 6px !important;
-    height: 38px !important;
-    margin-bottom: 0.2rem !important;
-  }
-
-  label {
-    font-size: 0.72rem !important;
-    margin-top: 0.2rem !important;
-    margin-bottom: 0.1rem !important;
-    color: var(--text-dim) !important;
-  }
-
-  .form-card form {
-    gap: 0.35rem !important;
-  }
-
-  .form-card {
-    padding: 0.65rem 0.75rem !important;
-  }
-
-  .ops-forms-grid, .ops-tables-grid {
-    gap: 0.6rem !important;
-    margin-bottom: 0.85rem !important;
   }
 
   .dashboard-hero-grid,
@@ -1437,34 +1381,199 @@ table tr:hover td {
   .dashboard-grid,
   .dashboard-lower-grid,
   .side-stack {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 0.45rem !important;
+    margin-bottom: 0.65rem !important;
   }
 
   .totals-grid {
+    display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.45rem !important;
-    margin-bottom: 0.75rem !important;
+    gap: 0.35rem !important;
+    margin-bottom: 0.55rem !important;
+    width: 100% !important;
   }
 
   .total-card {
-    padding: 0.5rem 0.65rem !important;
-    border-radius: 8px !important;
+    padding: 0.35rem 0.45rem !important;
+    border-radius: 6px !important;
   }
 
   .total-label {
-    font-size: 0.72rem !important;
-    margin-bottom: 0.2rem !important;
+    font-size: 0.65rem !important;
+    margin-bottom: 0.1rem !important;
   }
 
   .total-value {
-    font-size: 1.15rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* CALENDARIO FIT MOBILE */
+  .calendar-widget {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .cal-cell {
+    min-height: 36px !important;
+    aspect-ratio: 1 !important;
+    padding: 0.15rem !important;
+    border-radius: 4px !important;
+  }
+
+  .cal-day-number {
+    font-size: 0.75rem !important;
+  }
+
+  .cal-day-header {
+    font-size: 0.58rem !important;
+    padding: 0.15rem 0 !important;
+  }
+
+  .calendar-header {
+    padding: 0.15rem 0 !important;
+  }
+
+  .calendar-title {
+    font-size: 1rem !important;
+  }
+
+  .cal-form {
+    padding: 0.65rem !important;
+  }
+
+  .cal-form-row {
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+  }
+
+  .cal-form-row > * {
+    flex: none !important;
+    width: 100% !important;
+  }
+
+  .next-appointment-banner {
+    padding: 0.65rem 0.75rem !important;
+  }
+
+  .next-badge {
+    font-size: 0.68rem !important;
+  }
+
+  .next-date-pill {
+    font-size: 0.72rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+
+  .next-title {
+    font-size: 0.95rem !important;
+  }
+
+  .event-list {
+    gap: 0.4rem !important;
+  }
+
+  .event-item {
+    padding: 0.5rem 0.65rem !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  .event-date {
+    font-size: 0.72rem !important;
+  }
+
+  .event-desc {
+    font-size: 0.82rem !important;
+  }
+
+  .event-meta {
+    font-size: 0.68rem !important;
+  }
+
+  /* TABLES & REGISTRO MOVIMENTI, DEBITI ATTIVI, ABBONAMENTI ATTIVI, FLEXIA */
+  .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border: 1px solid rgba(230, 36, 41, 0.3) !important;
+    border-radius: 6px !important;
+    margin-top: 0.3rem !important;
+  }
+
+  .data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.7rem !important;
+  }
+
+  .data-table th {
+    font-size: 0.62rem !important;
+    padding: 0.25rem 0.3rem !important;
+    white-space: nowrap !important;
+  }
+
+  .data-table td {
+    font-size: 0.72rem !important;
+    padding: 0.3rem 0.3rem !important;
+    white-space: nowrap !important;
+  }
+
+  input, select, textarea {
+    font-size: 13px !important;
+    padding: 0.3rem 0.45rem !important;
+    border-radius: 6px !important;
+    height: 32px !important;
+    margin-bottom: 0.12rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  label {
+    font-size: 0.65rem !important;
+    margin-top: 0.12rem !important;
+    margin-bottom: 0.04rem !important;
+    color: var(--text-dim) !important;
+  }
+
+  .form-card form {
+    gap: 0.2rem !important;
+    width: 100% !important;
+  }
+
+  .btn, .btn-primary, .btn-submit, .btn-update, .btn-red {
+    padding: 0.4rem 0.65rem !important;
+    font-size: 0.78rem !important;
+    border-radius: 6px !important;
   }
 
   .btn-danger, .btn-small.btn-danger {
-    min-width: 38px !important;
-    min-height: 38px !important;
-    font-size: 1.05rem !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    font-size: 0.85rem !important;
+    padding: 0.15rem 0.35rem !important;
     border-radius: 6px !important;
+  }
+
+  .page-header h1 {
+    font-size: 1rem !important;
   }
 }
 
@@ -1473,9 +1582,80 @@ table tr:hover td {
     display: none !important;
   }
   .pill-title {
-    font-size: 0.62rem !important;
+    font-size: 0.6rem !important;
+  }
+}
+
+/* 4. SMARTPHONE MOLTO PICCOLI (< 360px) */
+@media (max-width: 360px) {
+  .cal-cell {
+    min-height: 28px !important;
+  }
+
+  .cal-day-number {
+    font-size: 0.65rem !important;
+  }
+
+  .cal-day-header {
+    font-size: 0.5rem !important;
+  }
+
+  .calendar-title {
+    font-size: 0.85rem !important;
+  }
+
+  .next-badge {
+    font-size: 0.58rem !important;
+  }
+
+  .total-label {
+    font-size: 0.55rem !important;
+  }
+
+  .total-value {
+    font-size: 0.85rem !important;
+  }
+
+  .nav-icon {
+    font-size: 1rem !important;
+  }
+
+  .nav-text {
+    font-size: 0.55rem !important;
+  }
+}
+
+/* =====================================================
+   MOBILE CHART & GRID OVERFLOW FIX
+   ===================================================== */
+@media (max-width: 768px) {
+  /* Fix CategoryCharts inline grid overflow */
+  .category-charts-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .category-charts-wrapper > .neon-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure charts containers fit */
+  .category-charts-wrapper [style*="height: 320"],
+  .category-charts-wrapper [style*="height: 280"] {
+    max-width: 100% !important;
+  }
+
+  /* Ensure charts don't overflow */
+  .recharts-wrapper,
+  .recharts-responsive-container {
+    max-width: 100% !important;
   }
 }
 
 
-
+
