@@ -19,30 +19,32 @@ export default function PaginatedTable<T>({ data, columns, pageSize = 5, keyFn }
 
   return (
     <div className="paginated-table">
-      <table className="data-table">
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th key={col.header}>{col.header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {slice.length === 0 ? (
+      <div className="table-responsive">
+        <table className="data-table">
+          <thead>
             <tr>
-              <td colSpan={columns.length} className="empty-row">Nessun dato</td>
+              {columns.map((col) => (
+                <th key={col.header}>{col.header}</th>
+              ))}
             </tr>
-          ) : (
-            slice.map((row, idx) => (
-              <tr key={keyFn(row, idx)}>
-                {columns.map((col) => (
-                  <td key={col.header}>{col.render(row)}</td>
-                ))}
+          </thead>
+          <tbody>
+            {slice.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="empty-row">Nessun dato</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              slice.map((row, idx) => (
+                <tr key={keyFn(row, idx)}>
+                  {columns.map((col) => (
+                    <td key={col.header}>{col.render(row)}</td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       {totalPages > 1 && (
         <div className="pagination">
           <button

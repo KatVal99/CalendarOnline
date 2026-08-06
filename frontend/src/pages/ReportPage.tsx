@@ -290,33 +290,35 @@ export default function ReportPage() {
       )}
 
       <section className="card">
-        <h2>📋 Tabella Trend</h2>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Mese</th>
-              <th>Entrate</th>
-              <th>Spese</th>
-              <th>Saldo Mensile</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trend.length === 0 ? (
-              <tr><td colSpan={4} className="empty-row">Nessun dato disponibile</td></tr>
-            ) : (
-              trend.map((t) => (
-                <tr key={t.month}>
-                  <td>{t.month}</td>
-                  <td className="positive">{formatCurrency(t.incomes)}</td>
-                  <td className="negative">{formatCurrency(t.expenses)}</td>
-                  <td className={t.incomes - t.expenses >= 0 ? 'positive' : 'negative'}>
-                    {formatCurrency(t.incomes - t.expenses)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <h2>📊 Tabella Trend Spidey</h2>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Mese</th>
+                <th>Entrate</th>
+                <th>Spese</th>
+                <th>Saldo Mensile</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trend.length === 0 ? (
+                <tr><td colSpan={4} className="empty-row">Nessun dato disponibile</td></tr>
+              ) : (
+                trend.map((t) => (
+                  <tr key={t.month}>
+                    <td>{t.month}</td>
+                    <td className="positive">{formatCurrency(t.incomes)}</td>
+                    <td className="negative">{formatCurrency(t.expenses)}</td>
+                    <td className={t.incomes - t.expenses >= 0 ? 'positive' : 'negative'}>
+                      {formatCurrency(t.incomes - t.expenses)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {error && <ErrorModal title={error.title} message={error.message} onClose={() => setError(null)} />}

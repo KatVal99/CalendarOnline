@@ -313,26 +313,43 @@ export default function CoinCatcherArcade() {
         ctx.fillRect(sx, sy, 2, 2);
       }
 
-      // Draw Player Collector Ship
+      // Draw Pixel Spiderman Web Catcher
       const px = gs.playerX;
       ctx.save();
-      ctx.shadowColor = '#00ffaa';
-      ctx.shadowBlur = 15;
-      ctx.fillStyle = '#00ffaa';
-
-      // Ship body
+      
+      // Web Net catching boundary
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 10;
       ctx.beginPath();
-      ctx.roundRect(px, py, P_W, P_H, 6);
-      ctx.fill();
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px + P_W / 2, py + 12, px + P_W, py);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-      // Cyber glow rim
+      // Spiderman Head & Mask in center
+      ctx.fillStyle = '#e62429';
+      ctx.fillRect(px + P_W / 2 - 12, py + 6, 24, 14);
+      ctx.fillStyle = '#ffffff'; // White Eyes
+      ctx.fillRect(px + P_W / 2 - 9, py + 9, 6, 5);
+      ctx.fillRect(px + P_W / 2 + 3, py + 9, 6, 5);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(px + P_W / 2 - 10, py + 9, 1, 5);
+      ctx.fillRect(px + P_W / 2 + 9, py + 9, 1, 5);
+
+      // Spiderman Suit & Arms stretching out web
+      ctx.fillStyle = '#0b5ed7';
+      ctx.fillRect(px + 6, py + 16, P_W - 12, 12);
+      ctx.fillStyle = '#e62429';
+      ctx.fillRect(px + P_W / 2 - 6, py + 16, 12, 12);
+
+      // Web shooter hands at ends
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(px + 6, py + 4, P_W - 12, 4);
+      ctx.fillRect(px - 2, py + 2, 6, 6);
+      ctx.fillRect(px + P_W - 4, py + 2, 6, 6);
 
-      // Side thrusters
-      ctx.fillStyle = '#ff00aa';
-      ctx.fillRect(px - 4, py + 8, 4, 12);
-      ctx.fillRect(px + P_W, py + 8, 4, 12);
       ctx.restore();
 
       // Draw Items

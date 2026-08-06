@@ -86,7 +86,12 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-box">
-        <div className="login-logo">Budget Club</div>
+        <div className="login-logo" style={{ color: 'var(--spidey-red)', textShadow: '0 0 12px var(--spidey-red)' }}>
+          🕷️ SPIDEY BUDGET
+        </div>
+        <div style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-dim)', marginBottom: '1.2rem' }}>
+          Gestione Finanziaria 8-Bit Spidey Edition
+        </div>
 
         {/* Tabs */}
         <div className="login-tabs">

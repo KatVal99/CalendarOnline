@@ -547,6 +547,7 @@ export default function RunnerArcade() {
       ctx.fill();
 
       // ─── MARIO ANATOMICO E DINAMICO ──────────────────────────────────
+      // ─── PIXEL SPIDERMAN DINAMICO E ANATOMICO ──────────────────────────────────
       if (p.invulnerableTimer % 6 < 3) {
         ctx.save();
         const mx = p.x;
@@ -556,7 +557,6 @@ export default function RunnerArcade() {
 
         const walkCycle = Math.floor(p.animFrame) % 4;
         const isMoving = p.vx !== 0 && p.grounded;
-
         const bobY = isMoving && (walkCycle === 1 || walkCycle === 3) ? -2 : 0;
         const my = p.y + bobY;
 
@@ -565,131 +565,109 @@ export default function RunnerArcade() {
         let armYOffset = 0;
 
         if (!p.grounded) {
-          armYOffset = -6;
-          armFrontOffset = isRight ? 4 : -4;
-          armBackOffset = isRight ? -4 : 4;
+          armYOffset = -8;
+          armFrontOffset = isRight ? 6 : -6;
+          armBackOffset = isRight ? -6 : 6;
         } else if (isMoving) {
           if (walkCycle === 1) {
-            armFrontOffset = isRight ? -4 : 4;
-            armBackOffset = isRight ? 4 : -4;
+            armFrontOffset = isRight ? -5 : 5;
+            armBackOffset = isRight ? 5 : -5;
           } else if (walkCycle === 3) {
-            armFrontOffset = isRight ? 4 : -4;
-            armBackOffset = isRight ? -4 : 4;
+            armFrontOffset = isRight ? 5 : -5;
+            armBackOffset = isRight ? -5 : 5;
           }
         }
 
-        if (p.isBig && !p.isCrouching) {
-          // --- BIG MARIO ---
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + 2, my, 20, 10);
-          ctx.fillRect(isRight ? mx + 8 : mx + 2, my - 3, 12, 3);
+        // Web shooting visual tracer when jumping
+        if (!p.grounded) {
+          ctx.save();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(mx + mw / 2 + (isRight ? 10 : -10), my - 2);
+          ctx.lineTo(mx + mw / 2 + (isRight ? 40 : -40), my - 70);
+          ctx.stroke();
+          ctx.restore();
+        }
 
-          ctx.fillStyle = '#fcbe94';
-          ctx.fillRect(mx + 4, my + 10, 16, 12);
-
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(isRight ? mx + 13 : mx + 5, my + 10, 5, 6);
+        // 1. MASK / HEAD (Spidey Red + Black web lines + Angular White Lenses)
+        ctx.fillStyle = '#e62429';
+        ctx.fillRect(mx + 3, my, 18, 12);
+        ctx.fillStyle = '#000000';
+        // Web lines on mask
+        ctx.fillRect(mx + 11, my, 2, 12);
+        ctx.fillRect(mx + 3, my + 6, 18, 1);
+        
+        // Large White Spider Lenses/Eyes
+        ctx.fillStyle = '#ffffff';
+        if (isRight) {
+          ctx.fillRect(mx + 12, my + 3, 7, 5);
+          ctx.fillRect(mx + 14, my + 2, 4, 1);
           ctx.fillStyle = '#000000';
-          ctx.fillRect(isRight ? mx + 15 : mx + 5, my + 11, 3, 4);
-
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(isRight ? mx + 10 : mx + 2, my + 17, 12, 4);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + 4, my + 22, 16, 12);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx - 2 + armBackOffset, my + 22 + armYOffset, 6, 8);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(mx - 2 + armBackOffset, my + 28 + armYOffset, 6, 6);
-
-          ctx.fillStyle = '#0020c0';
-          ctx.fillRect(mx + 4, my + 26, 16, 18);
-          ctx.fillStyle = '#fce400';
-          ctx.fillRect(mx + 6, my + 30, 3, 4);
-          ctx.fillRect(mx + 15, my + 30, 3, 4);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + mw - 4 + armFrontOffset, my + 22 + armYOffset, 6, 8);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(mx + mw - 4 + armFrontOffset, my + 28 + armYOffset, 6, 6);
-
-          ctx.fillStyle = '#6c3800';
-          if (!p.grounded) {
-            ctx.fillRect(mx - 2, my + mh - 10, 10, 6);
-            ctx.fillRect(mx + mw - 6, my + mh - 4, 12, 6);
-          } else if (isMoving) {
-            if (walkCycle === 0) {
-              ctx.fillRect(mx + 2, my + mh - 6, 10, 6);
-              ctx.fillRect(mx + 12, my + mh - 6, 10, 6);
-            } else if (walkCycle === 1) {
-              ctx.fillRect(mx - 3, my + mh - 6, 11, 6);
-              ctx.fillRect(mx + mw - 6, my + mh - 6, 11, 6);
-            } else if (walkCycle === 2) {
-              ctx.fillRect(mx + 4, my + mh - 6, 16, 6);
-            } else {
-              ctx.fillRect(mx + mw - 7, my + mh - 6, 11, 6);
-              ctx.fillRect(mx - 2, my + mh - 6, 11, 6);
-            }
-          } else {
-            ctx.fillRect(mx - 2, my + mh - 6, 11, 6);
-            ctx.fillRect(mx + mw - 9, my + mh - 6, 11, 6);
-          }
-
+          ctx.fillRect(mx + 11, my + 3, 1, 5);
+          ctx.fillRect(mx + 19, my + 4, 1, 3);
         } else {
-          // --- SMALL MARIO ---
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + 2, my, 20, 8);
-          ctx.fillRect(isRight ? mx + 8 : mx + 2, my - 3, 10, 3);
-
-          ctx.fillStyle = '#fcbe94';
-          ctx.fillRect(mx + 4, my + 8, 16, 10);
-
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(isRight ? mx + 13 : mx + 5, my + 8, 5, 5);
+          ctx.fillRect(mx + 5, my + 3, 7, 5);
+          ctx.fillRect(mx + 6, my + 2, 4, 1);
           ctx.fillStyle = '#000000';
-          ctx.fillRect(isRight ? mx + 15 : mx + 5, my + 9, 3, 3);
-
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(isRight ? mx + 10 : mx + 2, my + 13, 10, 4);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx - 3 + armBackOffset, my + 18 + armYOffset, 5, 6);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(mx - 3 + armBackOffset, my + 22 + armYOffset, 5, 5);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + 4, my + 18, 16, 8);
-          ctx.fillStyle = '#0020c0';
-          ctx.fillRect(mx + 4, my + 18, 16, 10);
-
-          ctx.fillStyle = '#e40058';
-          ctx.fillRect(mx + mw - 2 + armFrontOffset, my + 18 + armYOffset, 5, 6);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(mx + mw - 2 + armFrontOffset, my + 22 + armYOffset, 5, 5);
-
-          ctx.fillStyle = '#6c3800';
-          if (!p.grounded) {
-            ctx.fillRect(mx - 4, my + mh - 8, 10, 5);
-            ctx.fillRect(mx + mw - 5, my + mh - 4, 11, 5);
-          } else if (isMoving) {
-            if (walkCycle === 0) {
-              ctx.fillRect(mx + 2, my + mh - 5, 9, 5);
-              ctx.fillRect(mx + 13, my + mh - 5, 9, 5);
-            } else if (walkCycle === 1) {
-              ctx.fillRect(mx - 3, my + mh - 5, 10, 5);
-              ctx.fillRect(mx + mw - 6, my + mh - 5, 10, 5);
-            } else if (walkCycle === 2) {
-              ctx.fillRect(mx + 5, my + mh - 5, 14, 5);
-            } else {
-              ctx.fillRect(mx + mw - 6, my + mh - 5, 10, 5);
-              ctx.fillRect(mx - 3, my + mh - 5, 10, 5);
-            }
-          } else {
-            ctx.fillRect(mx - 2, my + mh - 5, 10, 5);
-            ctx.fillRect(mx + mw - 8, my + mh - 5, 10, 5);
-          }
+          ctx.fillRect(mx + 12, my + 3, 1, 5);
+          ctx.fillRect(mx + 4, my + 4, 1, 3);
         }
+
+        // 2. TORSO & SUIT (Red Center with Spider Symbol, Blue Sides)
+        ctx.fillStyle = '#0b5ed7'; // Blue sides
+        ctx.fillRect(mx + 2, my + 12, 20, 10);
+        ctx.fillStyle = '#e62429'; // Red chest
+        ctx.fillRect(mx + 6, my + 12, 12, 10);
+        // Black Spider Emblem on Chest
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(mx + 11, my + 14, 2, 5);
+        ctx.fillRect(mx + 9, my + 15, 6, 2);
+        ctx.fillRect(mx + 8, my + 13, 2, 2);
+        ctx.fillRect(mx + 14, my + 13, 2, 2);
+
+        // 3. ARMS & WEB SHOOTER GLOVES
+        ctx.fillStyle = '#e62429';
+        ctx.fillRect(mx - 2 + armBackOffset, my + 12 + armYOffset, 5, 8);
+        ctx.fillStyle = '#ffffff'; // White web shooter wrist
+        ctx.fillRect(mx - 2 + armBackOffset, my + 18 + armYOffset, 5, 3);
+
+        ctx.fillStyle = '#e62429';
+        ctx.fillRect(mx + mw - 3 + armFrontOffset, my + 12 + armYOffset, 5, 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(mx + mw - 3 + armFrontOffset, my + 18 + armYOffset, 5, 3);
+
+        // 4. LEGS & RED BOOTS (Spidey Blue Tights + Red Boots)
+        ctx.fillStyle = '#0b5ed7';
+        if (!p.grounded) {
+          ctx.fillRect(mx + 2, my + 22, 8, 5);
+          ctx.fillRect(mx + 14, my + 22, 8, 5);
+          ctx.fillStyle = '#e62429'; // Red Boots
+          ctx.fillRect(mx, my + 27, 8, 5);
+          ctx.fillRect(mx + 16, my + 27, 8, 5);
+        } else if (isMoving) {
+          ctx.fillRect(mx + 4, my + 22, 16, 5);
+          ctx.fillStyle = '#e62429'; // Red Boots
+          if (walkCycle === 0) {
+            ctx.fillRect(mx + 2, my + mh - 5, 9, 5);
+            ctx.fillRect(mx + 13, my + mh - 5, 9, 5);
+          } else if (walkCycle === 1) {
+            ctx.fillRect(mx - 2, my + mh - 5, 10, 5);
+            ctx.fillRect(mx + mw - 6, my + mh - 5, 10, 5);
+          } else if (walkCycle === 2) {
+            ctx.fillRect(mx + 5, my + mh - 5, 14, 5);
+          } else {
+            ctx.fillRect(mx + mw - 6, my + mh - 5, 10, 5);
+            ctx.fillRect(mx - 2, my + mh - 5, 10, 5);
+          }
+        } else {
+          ctx.fillRect(mx + 4, my + 22, 16, 5);
+          ctx.fillStyle = '#e62429'; // Red Boots
+          ctx.fillRect(mx + 2, my + mh - 5, 9, 5);
+          ctx.fillRect(mx + mw - 9, my + mh - 5, 9, 5);
+        }
+
         ctx.restore();
       }
 
@@ -698,10 +676,10 @@ export default function RunnerArcade() {
       ctx.save();
       ctx.fillStyle = '#ffffff';
       ctx.font = '10px "Press Start 2P", monospace';
-      ctx.fillText(`MARIO`, 20, 24);
+      ctx.fillText(`SPIDEY`, 20, 24);
       ctx.fillText(`${String(Math.floor(state.score)).padStart(6, '0')}`, 20, 40);
 
-      ctx.fillStyle = '#e40058';
+      ctx.fillStyle = '#ff2a4b';
       ctx.fillText(`♥ × ${state.lives}`, 200, 24);
 
       ctx.fillStyle = '#ffffff';

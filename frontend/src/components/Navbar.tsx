@@ -13,9 +13,13 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
+      <div className="nav-brand">
+        <span className="spidey-logo-icon">🕷️</span>
+        <span className="spidey-brand-title">SPIDEY BUDGET</span>
+      </div>
       <div className="nav-links">
         <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          <span className="nav-icon">📊</span> <span className="nav-text">Dashboard</span>
+          <span className="nav-icon">🏙️</span> <span className="nav-text">Dashboard</span>
         </NavLink>
         <NavLink to="/operations" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <span className="nav-icon">💳</span> <span className="nav-text">Operazioni</span>
@@ -34,7 +38,7 @@ export default function Navbar() {
         <LiveClock />
         {isAuthenticated && (
           <>
-            <span className="user-badge"><span className="nav-icon">👤</span> <span className="user-email-text">{email}</span></span>
+            <span className="user-badge"><span className="nav-icon">🕸️</span> <span className="user-email-text">{email}</span></span>
             <button className="btn btn-logout-large" onClick={handleLogout}>Logout</button>
           </>
         )}

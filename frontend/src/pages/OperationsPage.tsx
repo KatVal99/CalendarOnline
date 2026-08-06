@@ -157,22 +157,22 @@ export default function OperationsPage() {
 
   return (
     <div className="page operations-page">
-      <div className="page-header"><h1>💳 Operazioni</h1></div>
+      <div className="page-header"><h1>💳 Operazioni & Movimenti Spidey</h1></div>
 
       {data && (
         <div className="totals-grid">
           <div className="neon-panel neon-magenta total-card">
-            <div className="total-label">💰 Saldo Attuale</div>
+            <div className="total-label">🕷️ Saldo Spidey</div>
             <div className={`total-value ${data.currentBalance >= 0 ? 'positive' : 'negative'}`}>
               {formatCurrency(data.currentBalance)}
             </div>
           </div>
           <div className="neon-panel neon-cyan total-card">
-            <div className="total-label">🔄 Abbonamenti Mensili</div>
+            <div className="total-label">🔄 Abbonamenti</div>
             <div className="total-value" style={{ color: 'var(--cyan)' }}>{formatCurrency(data.monthlySubscriptionsTotal)}</div>
           </div>
           <div className="neon-panel neon-yellow total-card">
-            <div className="total-label">🪙 Rate Debiti Mensili</div>
+            <div className="total-label">⚡ Rate Debiti</div>
             <div className="total-value" style={{ color: 'var(--yellow)' }}>{formatCurrency(data.debts.reduce((s, d) => s + d.monthlyInstallment, 0))}</div>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function OperationsPage() {
 
       <div className="ops-forms-grid">
         <section className="neon-panel neon-green form-card">
-          <h2>🟢 Aggiungi Entrata</h2>
+          <h2>🟢 + Entrata Spidey</h2>
           <form onSubmit={addIncome}>
             <input type="text" placeholder="Descrizione" value={incomeDesc} onChange={e => setIncomeDesc(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Importo €" value={incomeAmt} onChange={e => setIncomeAmt(e.target.value)} required />
@@ -194,7 +194,7 @@ export default function OperationsPage() {
         </section>
 
         <section className="neon-panel neon-magenta form-card">
-          <h2>🔴 Aggiungi Spesa</h2>
+          <h2>🔴 + Spesa Spidey</h2>
           <form onSubmit={addExpense}>
             <input type="text" placeholder="Descrizione" value={expenseDesc} onChange={e => setExpenseDesc(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Importo €" value={expenseAmt} onChange={e => setExpenseAmt(e.target.value)} required />
@@ -208,7 +208,7 @@ export default function OperationsPage() {
         </section>
 
         <section className="neon-panel neon-yellow form-card">
-          <h2>🟡 Nuovo Debito</h2>
+          <h2>⚡ Nuovo Debito / Impegno</h2>
           <form onSubmit={addDebt}>
             <input type="text" placeholder="Etichetta (es. Unicredit, Volo)" value={debtLabel} onChange={e => setDebtLabel(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Importo TOTALE €" value={debtTotalAmt} onChange={e => setDebtTotalAmt(e.target.value)} required />
@@ -245,7 +245,7 @@ export default function OperationsPage() {
 
       <div className="ops-tables-grid">
         <section className="neon-panel neon-green">
-          <h2>📋 Movimenti Recenti</h2>
+          <h2>🕸️ Registro Movimenti Recenti</h2>
           <PaginatedTable
             data={data?.latestEntries ?? []}
             keyFn={(r: LedgerEntry) => r.eventId}

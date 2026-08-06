@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 
-interface NodePoint { x: number; y: number; glow: number; radius: number }
-interface Segment { a: NodePoint; b: NodePoint; elbowX: number; elbowY: number; pulse: number; speed: number; color: string }
+interface WebNode { x: number; y: number; glow: number; radius: number; color: string }
+interface WebSegment { a: WebNode; b: WebNode; elbowX: number; elbowY: number; pulse: number; speed: number; color: string }
 
-const CIRCUIT_COLORS = ['#00ff88', '#00ffff', '#ff00ff'];
+const SPIDER_COLORS = ['#ff2a4b', '#0b5ed7', '#ffcc00', '#ffffff'];
 
 export default function PixelStars() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,17 +15,23 @@ export default function PixelStars() {
     if (!ctx) return;
 
     let animId = 0;
-    let nodes: NodePoint[] = [];
-    let segments: Segment[] = [];
+    let nodes: WebNode[] = [];
+    let segments: WebSegment[] = [];
 
     const rebuild = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      const step = 110;
+      const step = Math.max(90, Math.min(130, Math.floor(window.innerWidth / 10)));
       nodes = [];
-      for (let y = 40; y < canvas.height; y += step) {
-        for (let x = 40; x < canvas.width; x += step) {
-          nodes.push({ x: x + (Math.random() * 20 - 10), y: y + (Math.random() * 20 - 10), glow: Math.random(), radius: 4 + Math.random() * 4 });
+      for (let y = 30; y < canvas.height; y += step) {
+        for (let x = 30; x < canvas.width; x += step) {
+          nodes.push({
+            x: x + (Math.random() * 24 - 12),
+            y: y + (Math.random() * 24 - 12),
+            glow: Math.random(),
+            radius: 3 + Math.random() * 4,
+            color: Math.random() > 0.4 ? '#ff2a4b' : '#0b5ed7',
+          });
         }
       }
       segments = [];
@@ -33,7 +39,7 @@ export default function PixelStars() {
         const near = nodes
           .filter((candidate) => candidate !== node)
           .map((candidate) => ({ candidate, dist: Math.hypot(candidate.x - node.x, candidate.y - node.y) }))
-          .filter(({ dist }) => dist < 190)
+          .filter(({ dist }) => dist < step * 1.6)
           .sort((a, b) => a.dist - b.dist)
           .slice(0, 3);
         near.forEach(({ candidate }, index) => {
@@ -46,8 +52,8 @@ export default function PixelStars() {
             elbowX,
             elbowY,
             pulse: Math.random(),
-            speed: 0.003 + index * 0.0015 + Math.random() * 0.002,
-            color: CIRCUIT_COLORS[Math.floor(Math.random() * CIRCUIT_COLORS.length)],
+            speed: 0.002 + index * 0.0015 + Math.random() * 0.002,
+            color: SPIDER_COLORS[Math.floor(Math.random() * SPIDER_COLORS.length)],
           });
         });
       }
@@ -55,15 +61,17 @@ export default function PixelStars() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
       const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      bg.addColorStop(0, '#050508');
-      bg.addColorStop(1, '#080814');
+      bg.addColorStop(0, '#060713');
+      bg.addColorStop(0.5, '#0e1124');
+      bg.addColorStop(1, '#080914');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       segments.forEach((segment) => {
         ctx.save();
-        ctx.strokeStyle = 'rgba(30, 255, 190, 0.12)';
+        ctx.strokeStyle = 'rgba(255, 42, 75, 0.12)';
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.moveTo(segment.a.x, segment.a.y);
@@ -88,8 +96,7 @@ export default function PixelStars() {
         }
         ctx.strokeStyle = segment.color;
         ctx.shadowColor = segment.color;
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 2;
+        ctx.shadowBlur = 8;
         ctx.fillStyle = segment.color;
         ctx.fillRect(pulseX - 2, pulseY - 2, 4, 4);
         ctx.restore();
@@ -102,25 +109,22 @@ export default function PixelStars() {
         node.glow += 0.02 + (index % 3) * 0.003;
         const intensity = 0.35 + ((Math.sin(node.glow) + 1) / 2) * 0.65;
         ctx.save();
-        ctx.fillStyle = `rgba(0,255,255,${0.12 * intensity})`;
+        ctx.fillStyle = node.color === '#ff2a4b' ? `rgba(255,42,75,${0.14 * intensity})` : `rgba(11,94,215,${0.14 * intensity})`;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * 2 * intensity, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, node.radius * 2.2 * intensity, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = `rgba(0,255,255,${0.8 * intensity})`;
-        ctx.shadowColor = '#00ffff';
-        ctx.shadowBlur = 12;
+        ctx.fillStyle = node.color;
+        ctx.shadowColor = node.color;
+        ctx.shadowBlur = 10;
         ctx.fillRect(node.x - node.radius / 2, node.y - node.radius / 2, node.radius, node.radius);
-        ctx.strokeStyle = 'rgba(0,255,255,0.18)';
-        ctx.strokeRect(node.x - 7, node.y - 7, 14, 14);
-        if (Math.random() < 0.006) {
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(node.x - 8, node.y);
-          ctx.lineTo(node.x + 8, node.y);
-          ctx.moveTo(node.x, node.y - 8);
-          ctx.lineTo(node.x, node.y + 8);
-          ctx.stroke();
+        
+        if (index % 7 === 0) {
+          ctx.fillStyle = '#ff2a4b';
+          const px = node.x, py = node.y;
+          ctx.fillRect(px - 6, py - 3, 2, 1);
+          ctx.fillRect(px + 4, py - 3, 2, 1);
+          ctx.fillRect(px - 6, py + 3, 2, 1);
+          ctx.fillRect(px + 4, py + 3, 2, 1);
         }
         ctx.restore();
       });
@@ -137,6 +141,5 @@ export default function PixelStars() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.9 }} />;
+  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.95 }} />;
 }
-

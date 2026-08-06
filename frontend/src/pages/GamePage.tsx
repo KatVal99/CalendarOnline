@@ -617,21 +617,21 @@ function SpaceInvadersArcade() {
 type ArcadeTab = 'invaders' | 'catcher' | 'sudoku' | 'runner';
 
 export default function GamePage() {
-  const [activeTab, setActiveTab] = useState<ArcadeTab>('invaders');
+  const [activeTab, setActiveTab] = useState<ArcadeTab>('runner');
 
   return (
       <div className="page game-page">
         <div className="page-header">
-          <h1>👾 Arcade District</h1>
+          <h1>🕷️ Spidey Arcade District</h1>
           <div className="game-tabs">
-            <button className={`btn btn-small ${activeTab === 'invaders' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('invaders')}>Space Invaders</button>
-            <button className={`btn btn-small ${activeTab === 'catcher' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('catcher')}>Budget Catcher</button>
-            <button className={`btn btn-small ${activeTab === 'sudoku' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('sudoku')}>Sudoku</button>
-            <button className={`btn btn-small ${activeTab === 'runner' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('runner')}>Platform Run</button>
+            <button className={`btn btn-small ${activeTab === 'runner' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('runner')}>🕷️ Spidey Platform Run</button>
+            <button className={`btn btn-small ${activeTab === 'catcher' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('catcher')}>🕸️ Spidey Web Catcher</button>
+            <button className={`btn btn-small ${activeTab === 'invaders' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('invaders')}>👾 Web Shooter Invaders</button>
+            <button className={`btn btn-small ${activeTab === 'sudoku' ? 'btn-primary' : ''}`} onClick={() => setActiveTab('sudoku')}>🧩 Spidey Sudoku</button>
           </div>
         </div>
 
-        <div className="arcade-hero-note">Quattro modalità arcade: shooter, coin collector, puzzle e platformer neon in stile retro-cyberpunk.</div>
+        <div className="arcade-hero-note">Quattro modalità arcade retro 8-bit con Spiderman Pixel in azione: platformer, web catcher, shooter e puzzle.</div>
 
         {activeTab === 'invaders' && <SpaceInvadersArcade />}
         {activeTab === 'catcher' && <CoinCatcherArcade />}

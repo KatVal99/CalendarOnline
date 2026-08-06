@@ -357,7 +357,7 @@ export default function DashboardPage() {
   return (
     <div className="page dashboard-page">
       <div className="page-header">
-        <h1>📊 Dashboard</h1>
+        <h1>🏙️ Dashboard Spidey</h1>
         <button className="btn" onClick={load}>🔄 Aggiorna</button>
       </div>
 
@@ -365,12 +365,12 @@ export default function DashboardPage() {
         <div className="dashboard-hero-grid">
           {/* Saldo - smooth line */}
           <section className="neon-panel neon-magenta balance-panel">
-            <div className="panel-kicker">💰 Saldo Attuale</div>
+            <div className="panel-kicker">🕷️ Saldo Spidey Attuale</div>
             <div className={`hero-balance ${data.currentBalance >= 0 ? 'positive' : 'negative'}`}>
               {formatCurrency(data.currentBalance)}
             </div>
             <div className="smooth-chart-container">
-              <SmoothLineChart rawData={smoothLineData} color={data.currentBalance >= 0 ? '#00ff88' : '#ff4444'} />
+              <SmoothLineChart rawData={smoothLineData} color={data.currentBalance >= 0 ? '#00e676' : '#e62429'} />
             </div>
             <div className="chart-caption">Netto mensile — ultimi mesi</div>
           </section>
@@ -389,13 +389,13 @@ export default function DashboardPage() {
                 {netTrend >= 0 ? '+' : ''}{netTrend.toFixed(1)}%
               </strong>
             </p>
-            <div className="task-tape">TODAY&apos;S TASK: {dynamicTask}</div>
+            <div className="task-tape">MISSIONE DI OGGI: {dynamicTask}</div>
           </section>
 
           {/* Side Stack */}
           <aside className="side-stack">
             <section className="neon-panel neon-magenta compact-stats">
-              <span className="panel-kicker">💳 IMPEGNI MENSILI</span>
+              <span className="panel-kicker">🕸️ IMPEGNI MENSILI</span>
               <div className="stats-card-group">
                 <div className="stat-item-badge cyan">
                   <span className="stat-item-icon">🔄</span>
@@ -405,7 +405,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="stat-item-badge yellow">
-                  <span className="stat-item-icon">🪙</span>
+                  <span className="stat-item-icon">⚡</span>
                   <div className="stat-item-info">
                     <span className="stat-item-label">Rate Debiti / Mese</span>
                     <span className="stat-item-value yellow">{formatCurrency(computeDebtTotal(data))}</span>
@@ -415,10 +415,10 @@ export default function DashboardPage() {
             </section>
 
             <section className="neon-panel neon-green profile-panel">
-              <span className="panel-kicker">👤 PROFILO UTENTE</span>
+              <span className="panel-kicker">🕷️ PROFILO SPIDEY</span>
               <div className="profile-card-content">
                 <div className="avatar-ring-large">
-                  {profileAlias.charAt(0).toUpperCase()}
+                  🕷️
                 </div>
                 <div className="profile-info-group">
                   <span className="profile-name">{profileAlias}</span>
@@ -463,13 +463,13 @@ export default function DashboardPage() {
 
       <div className="dashboard-grid" style={{ marginTop: '1.5rem' }}>
         <section className="card">
-          <h2>📅 Calendario Appuntamenti</h2>
+          <h2>📅 Calendario & Missioni Spidey</h2>
           <CalendarWidget onError={showError} onToast={showToast} onEventsMutate={loadCalendarTask} />
         </section>
 
         <section className="card">
           <div className="section-header">
-            <h2>📋 Movimenti Recenti</h2>
+            <h2>🕸️ Registro Movimenti</h2>
             <div className="table-actions">
               <input type="text" className="movement-filter" placeholder="Filter"
                 value={movementFilter} onChange={(e) => setMovementFilter(e.target.value)} />
