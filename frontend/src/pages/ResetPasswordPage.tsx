@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { confirmPasswordReset } from '../api/client';
 import Toast from '../components/Toast';
 import ErrorModal from '../components/ErrorModal';
@@ -13,6 +13,7 @@ export default function ResetPasswordPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
   const [done, setDone] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ export default function ResetPasswordPage() {
         {done ? (
           <div className="success-msg">
             ✅ Password aggiornata con successo!<br />
-            <a href="/login" className="btn" style={{ marginTop: '1rem', display: 'inline-block' }}>Vai al Login</a>
+            <button onClick={() => navigate('/login')} className="btn" style={{ marginTop: '1rem', display: 'inline-block' }}>Vai al Login</button>
           </div>
         ) : (
           <form className="login-form" onSubmit={handleSubmit}>

@@ -4,7 +4,7 @@
 
 import type { DashboardData, CalendarEvent } from '../types';
 
-const isNativeApp = typeof window !== 'undefined' && (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const isNativeApp = typeof window !== 'undefined' && window.location.protocol === 'file:';
 const envApiUrl = (import.meta as any).env?.VITE_API_BASE_URL;
 const BASE_URL = envApiUrl || (isNativeApp ? 'https://calendaronline.onrender.com/api' : '/api');
 
@@ -19,7 +19,7 @@ function authHeaders(): HeadersInit {
   };
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 60000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -80,7 +80,7 @@ export async function deleteRequest<T>(path: string): Promise<T> {
 
 // ---- AUTH ----
 export async function loginCheck(email: string, password: string): Promise<boolean> {
-  const encoded = btoa(`${email}:${password}`);
+  const encoded = btoa(unescape(encodeURIComponent(`${email}:${password}`)));
   const authHeader = `Basic ${encoded}`;
   const res = await fetch(`${BASE_URL}/budget/dashboard`, {
     method: 'GET',

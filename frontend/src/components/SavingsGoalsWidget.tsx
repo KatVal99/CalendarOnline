@@ -76,7 +76,7 @@ export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onD
     if (!confirm("Sei sicuro di voler eliminare questo versamento? L'importo verrà rimosso dal salvadanaio e restituito al tuo saldo.")) return;
     await deleteSavingsGoalTransaction(goalId, txId);
     await loadTransactions(goalId);
-    await onDeposit(goalId, 0); // Trigger parent balance update
+
   };
 
   const handleUpdateTransaction = async (goalId: string, txId: string) => {
@@ -84,7 +84,7 @@ export default function SavingsGoalsWidget({ goals, onAddGoal, onUpdateGoal, onD
     await updateSavingsGoalTransaction(goalId, txId, parseFloat(editTxAmount), editTxNote);
     setEditingTxId(null);
     await loadTransactions(goalId);
-    await onDeposit(goalId, 0); // Trigger parent balance update
+
   };
 
   const openQuotaModal = (goal: SavingsGoal, quotaInfo: any) => {
