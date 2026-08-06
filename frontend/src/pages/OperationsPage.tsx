@@ -48,8 +48,12 @@ export default function OperationsPage() {
 
   const CATEGORIES = ['Alimentari', 'Svago', 'Bollette', 'Casa', 'Trasporti', 'Salute', 'Stipendio', 'Abbonamenti', 'Altro'];
 
-  // Loading states
-  const [submitting, setSubmitting] = useState(false);
+  // Loading states per form
+  const [submittingIncome, setSubmittingIncome] = useState(false);
+  const [submittingExpense, setSubmittingExpense] = useState(false);
+  const [submittingDebt, setSubmittingDebt] = useState(false);
+  const [submittingFlexia, setSubmittingFlexia] = useState(false);
+  const [submittingSub, setSubmittingSub] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const showError = (msg: string) => setError({ title: 'Errore', message: msg });
@@ -59,7 +63,7 @@ export default function OperationsPage() {
     catch (e) { showError((e as Error).message); }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   // Flexia: converti Map<String,BigDecimal> in array ordinato
   const flexiaArray = data
@@ -71,39 +75,39 @@ export default function OperationsPage() {
   // Handlers
   const addIncome = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingIncome(true);
     try {
       await createIncome(incomeDesc, parseFloat(incomeAmt), incomeCat);
       showToast('Entrata aggiunta ✅');
       setIncomeDesc('');
       setIncomeAmt('');
-      load();
+      await load();
     } catch (err) {
       showError((err as Error).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingIncome(false);
     }
   };
 
   const addExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingExpense(true);
     try {
       await createExpense(expenseDesc, parseFloat(expenseAmt), expenseCat);
       showToast('Spesa aggiunta ✅');
       setExpenseDesc('');
       setExpenseAmt('');
-      load();
+      await load();
     } catch (err) {
       showError((err as Error).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingExpense(false);
     }
   };
 
   const addDebt = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingDebt(true);
     try {
       await createDebt(debtLabel, parseFloat(debtTotalAmt), debtStart, parseInt(debtDuration));
       showToast('Debito aggiunto ✅');
@@ -111,43 +115,43 @@ export default function OperationsPage() {
       setDebtTotalAmt('');
       setDebtStart('');
       setDebtDuration('');
-      load();
+      await load();
     } catch (err) {
       showError((err as Error).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingDebt(false);
     }
   };
 
   const addFlexia = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingFlexia(true);
     try {
       await createFlexia(flexiaMonth, parseFloat(flexiaAmt));
       showToast('Flexia impostata ✅');
       setFlexiaMonth('');
       setFlexiaAmt('');
-      load();
+      await load();
     } catch (err) {
       showError((err as Error).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingFlexia(false);
     }
   };
 
   const addSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmittingSub(true);
     try {
       await createSubscription(subLabel, parseFloat(subCost));
       showToast('Abbonamento aggiunto ✅');
       setSubLabel('');
       setSubCost('');
-      load();
+      await load();
     } catch (err) {
       showError((err as Error).message);
     } finally {
-      setSubmitting(false);
+      setSubmittingSub(false);
     }
   };
 
@@ -183,8 +187,8 @@ export default function OperationsPage() {
             <select value={incomeCat} onChange={e => setIncomeCat(e.target.value)}>
               {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
-            <button className="btn btn-green" type="submit" disabled={submitting}>
-              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Entrata'}
+            <button className="btn btn-green" type="submit" disabled={submittingIncome}>
+              {submittingIncome ? '⏳ Salvataggio...' : '+ Aggiungi Entrata'}
             </button>
           </form>
         </section>
@@ -197,8 +201,8 @@ export default function OperationsPage() {
             <select value={expenseCat} onChange={e => setExpenseCat(e.target.value)}>
               {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
-            <button className="btn btn-red" type="submit" disabled={submitting}>
-              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Spesa'}
+            <button className="btn btn-red" type="submit" disabled={submittingExpense}>
+              {submittingExpense ? '⏳ Salvataggio...' : '+ Aggiungi Spesa'}
             </button>
           </form>
         </section>
@@ -210,8 +214,8 @@ export default function OperationsPage() {
             <input type="number" step="0.01" placeholder="Importo TOTALE €" value={debtTotalAmt} onChange={e => setDebtTotalAmt(e.target.value)} required />
             <input type="text" placeholder="Mese inizio (YYYY-MM, es. 2026-08)" value={debtStart} onChange={e => setDebtStart(e.target.value)} required pattern="\d{4}-\d{2}" />
             <input type="number" placeholder="Durata (mesi)" value={debtDuration} onChange={e => setDebtDuration(e.target.value)} required />
-            <button className="btn btn-yellow" type="submit" disabled={submitting}>
-              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Debito'}
+            <button className="btn btn-yellow" type="submit" disabled={submittingDebt}>
+              {submittingDebt ? '⏳ Salvataggio...' : '+ Aggiungi Debito'}
             </button>
           </form>
         </section>
@@ -221,8 +225,8 @@ export default function OperationsPage() {
           <form onSubmit={addFlexia}>
             <input type="text" placeholder="Mese (YYYY-MM, es. 2026-08)" value={flexiaMonth} onChange={e => setFlexiaMonth(e.target.value)} required pattern="\d{4}-\d{2}" />
             <input type="number" step="0.01" placeholder="Importo €" value={flexiaAmt} onChange={e => setFlexiaAmt(e.target.value)} required />
-            <button className="btn btn-orange" type="submit" disabled={submitting}>
-              {submitting ? '⏳ Salvataggio...' : '+ Imposta Flexia'}
+            <button className="btn btn-orange" type="submit" disabled={submittingFlexia}>
+              {submittingFlexia ? '⏳ Salvataggio...' : '+ Imposta Flexia'}
             </button>
           </form>
         </section>
@@ -232,8 +236,8 @@ export default function OperationsPage() {
           <form onSubmit={addSubscription}>
             <input type="text" placeholder="Etichetta (es. Netflix, Gym)" value={subLabel} onChange={e => setSubLabel(e.target.value)} required />
             <input type="number" step="0.01" placeholder="Costo mensile €" value={subCost} onChange={e => setSubCost(e.target.value)} required />
-            <button className="btn btn-blue" type="submit" disabled={submitting}>
-              {submitting ? '⏳ Salvataggio...' : '+ Aggiungi Abbonamento'}
+            <button className="btn btn-blue" type="submit" disabled={submittingSub}>
+              {submittingSub ? '⏳ Salvataggio...' : '+ Aggiungi Abbonamento'}
             </button>
           </form>
         </section>

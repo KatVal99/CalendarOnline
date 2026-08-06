@@ -19,6 +19,22 @@ function authHeaders(): HeadersInit {
   };
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err: any) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') {
+      throw new Error('Connessione al server in timeout (Render in fase di avvio). Riprova tra poco.');
+    }
+    throw err;
+  }
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
@@ -32,12 +48,12 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, { headers: authHeaders() });
+  const res = await fetchWithTimeout(`${BASE_URL}${path}`, { headers: authHeaders() });
   return handleResponse<T>(res);
 }
 
 export async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(body),
@@ -46,7 +62,7 @@ export async function postJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 export async function putJson<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify(body),
@@ -55,7 +71,7 @@ export async function putJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 export async function deleteRequest<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${BASE_URL}${path}`, {
     method: 'DELETE',
     headers: authHeaders(),
   });
