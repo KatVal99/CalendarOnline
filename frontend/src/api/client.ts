@@ -4,13 +4,14 @@
 
 import type { DashboardData, CalendarEvent } from '../types';
 
-const isNativeApp = typeof window !== 'undefined' && (
-  window.location.protocol === 'file:' ||
-  (window as any).Capacitor !== undefined ||
-  (window.location.hostname === 'localhost' && (!window.location.port || window.location.port === '80' || window.location.port === '443'))
-);
+const customApiUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('spideyApiUrl') : null;
 const envApiUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-const BASE_URL = envApiUrl || (isNativeApp ? 'https://calendaronline.onrender.com/api' : '/api');
+const isFileOrCapacitor = typeof window !== 'undefined' && (
+  window.location.protocol === 'file:' ||
+  (window as any).Capacitor?.isNativePlatform?.() === true
+);
+
+const BASE_URL = customApiUrl || envApiUrl || (isFileOrCapacitor ? 'https://calendaronline.onrender.com/api' : '/api');
 
 function getAuthHeader(): string {
   return localStorage.getItem('budgetAuthHeader') ?? '';
@@ -23,7 +24,7 @@ function authHeaders(): HeadersInit {
   };
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 60000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 30000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -33,20 +34,36 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   } catch (err: any) {
     clearTimeout(timer);
     if (err.name === 'AbortError') {
-      throw new Error('Connessione al server in timeout (Render in fase di avvio). Riprova tra poco.');
+      throw new Error('Connessione al server in timeout. Verifica che il backend sia attivo.');
     }
     throw err;
   }
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 204) {
+    return {} as T;
+  }
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(`HTTP ${res.status}: ${text}`);
+    let errorMsg = `HTTP ${res.status}`;
+    try {
+      const text = await res.text();
+      if (text) {
+        try {
+          const jsonErr = JSON.parse(text);
+          errorMsg = jsonErr.error || jsonErr.message || text;
+        } catch {
+          errorMsg = text.length < 150 ? text : `HTTP ${res.status}`;
+        }
+      }
+    } catch {}
+    throw new Error(errorMsg);
   }
   const ct = res.headers.get('content-type') ?? '';
   if (ct.includes('application/json')) {
-    return res.json() as Promise<T>;
+    const text = await res.text();
+    if (!text || !text.trim()) return {} as T;
+    return JSON.parse(text) as T;
   }
   return res.text() as unknown as Promise<T>;
 }

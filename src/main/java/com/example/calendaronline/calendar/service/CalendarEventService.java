@@ -99,7 +99,22 @@ public class CalendarEventService {
         if (time == null || time.isBlank()) {
             return null;
         }
-        return LocalTime.parse(time);
+        String trimmed = time.trim();
+        try {
+            if (trimmed.length() > 8) {
+                trimmed = trimmed.substring(0, 8);
+            }
+            if (trimmed.length() == 5) {
+                return LocalTime.parse(trimmed);
+            }
+            return LocalTime.parse(trimmed);
+        } catch (Exception e) {
+            try {
+                return LocalTime.parse(trimmed.substring(0, 5));
+            } catch (Exception ex) {
+                return null;
+            }
+        }
     }
 
     private CalendarEventType parseEventType(String type) {

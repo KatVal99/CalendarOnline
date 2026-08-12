@@ -115,16 +115,6 @@ export default function Navbar() {
             </>
           )}
         </div>
-
-        {/* Bottom Spidey Marquee Ticker Banner (matching reference bottom banner) */}
-        <div className="spidey-bottom-ticker-bar">
-          <div className="ticker-chibi-spidey">
-            <span className="chibi-icon">🕷️</span>
-          </div>
-          <div className="ticker-scroll-text">
-            <span>SPIDEY BUDGET ONLINE • TAP A TAB TO EXPLORE • CUSTOM BACKGROUND ENABLED •</span>
-          </div>
-        </div>
       </nav>
     </>
   );
