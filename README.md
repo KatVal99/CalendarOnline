@@ -1,10 +1,10 @@
-# Budget Tracker Kafka (BE + FE + DB)
+# CalendarOnline & Budget Tracker (BE + FE + DB)
 
 Implementazione full-stack con:
 - persistenza PostgreSQL
 - autenticazione utenti (budget separato per utente)
 - dashboard avanzata con trend mensile entrate/spese
-- interfaccia retro "vecchio stampo" in stile gestionale
+- interfaccia moderna e reattiva
 
 ## Funzionalita
 
@@ -25,15 +25,13 @@ La chiusura mese sottrae automaticamente:
 ## Stack
 
 - Backend: Spring Boot, REST, Spring Security, Spring Data JPA
-- Eventing: Kafka (`budget-events`)
 - Database: PostgreSQL
-- Frontend: HTML/CSS/JS statico servito da Spring (`/`)
+- Frontend: React + Vite + Capacitor (Android App)
 
 ## Avvio rapido (Windows PowerShell)
 
 ```powershell
 docker compose up -d postgres
-docker compose up -d kafka
 docker compose up -d mailpit
 .\mvnw.cmd test
 .\mvnw.cmd spring-boot:run
