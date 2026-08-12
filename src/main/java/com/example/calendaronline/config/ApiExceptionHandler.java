@@ -21,9 +21,17 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Formato data o orario non valido"));
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Errore di salvataggio nei dati. Verifica i campi inseriti e riprova."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
-        String msg = ex.getMessage() != null && !ex.getMessage().isBlank() ? ex.getMessage() : "Errore del server";
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Errore di sistema";
+        if (msg.contains("SQL") || msg.contains("constraint") || msg.contains("violates") || msg.contains("could not execute statement")) {
+            msg = "Errore durante il salvataggio dei dati. Riprova tra poco.";
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", msg));
     }
 }

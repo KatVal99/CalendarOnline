@@ -16,9 +16,12 @@ import java.util.List;
 public class CalendarEventService {
 
     private final CalendarEventRepository calendarEventRepository;
+    private final com.example.calendaronline.config.DatabaseSequenceInitializer sequenceInitializer;
 
-    public CalendarEventService(CalendarEventRepository calendarEventRepository) {
+    public CalendarEventService(CalendarEventRepository calendarEventRepository,
+                                com.example.calendaronline.config.DatabaseSequenceInitializer sequenceInitializer) {
         this.calendarEventRepository = calendarEventRepository;
+        this.sequenceInitializer = sequenceInitializer;
     }
 
     public List<CalendarEventDto> listByMonth(String username, int year, int month) {
@@ -53,7 +56,12 @@ public class CalendarEventService {
         entity.setEventType(parseEventType(request.eventType()));
         entity.setReminderMinutes(parseReminderMinutes(request.reminderMinutes()));
         entity.setCreatedAt(LocalDateTime.now());
-        return toDto(calendarEventRepository.save(entity));
+        try {
+            return toDto(calendarEventRepository.save(entity));
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            sequenceInitializer.syncSequence();
+            return toDto(calendarEventRepository.save(entity));
+        }
     }
 
     public CalendarEventDto update(String username, Long id, CalendarEventRequest request) {
