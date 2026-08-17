@@ -10,6 +10,8 @@ public final class BudgetDefaults {
     public static final String CATEGORY_DEBTS = "Debiti";
     public static final String CATEGORY_SAVINGS = "Salvadanaio";
     public static final String CATEGORY_FLEXIA = "Flexia";
+    public static final String CATEGORY_CARRYOVER = "Carryover";
+    public static final String CATEGORY_MONTHLY_CLOSE = "Chiusura";
 
     public static final String DESC_FLEXIA_DEFAULT = "Flexia";
     public static final String DESC_FLEXIA_REMOVED = "Flexia rimossa";

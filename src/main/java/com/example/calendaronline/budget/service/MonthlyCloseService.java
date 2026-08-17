@@ -1,5 +1,6 @@
 package com.example.calendaronline.budget.service;
 
+import com.example.calendaronline.budget.model.BudgetDefaults;
 import com.example.calendaronline.budget.model.BudgetEvent;
 import com.example.calendaronline.budget.model.BudgetEventType;
 import com.example.calendaronline.budget.persistence.BudgetEventRepository;
@@ -48,7 +49,7 @@ public class MonthlyCloseService {
             month.atDay(1),
             month.toString(),
             null,
-            "Chiusura"
+            BudgetDefaults.CATEGORY_MONTHLY_CLOSE
         );
         budgetEventRepository.save(BudgetEventMapper.toEntity(event));
         monthlyReportEmailService.sendMonthlyReport(username, month);

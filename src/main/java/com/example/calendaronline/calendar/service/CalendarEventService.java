@@ -5,7 +5,9 @@ import com.example.calendaronline.calendar.api.CalendarEventRequest;
 import com.example.calendaronline.calendar.model.CalendarEventType;
 import com.example.calendaronline.calendar.persistence.CalendarEventEntity;
 import com.example.calendaronline.calendar.persistence.CalendarEventRepository;
+import com.example.calendaronline.config.DatabaseSequenceInitializer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,10 +18,10 @@ import java.util.List;
 public class CalendarEventService {
 
     private final CalendarEventRepository calendarEventRepository;
-    private final com.example.calendaronline.config.DatabaseSequenceInitializer sequenceInitializer;
+    private final DatabaseSequenceInitializer sequenceInitializer;
 
     public CalendarEventService(CalendarEventRepository calendarEventRepository,
-                                com.example.calendaronline.config.DatabaseSequenceInitializer sequenceInitializer) {
+                                DatabaseSequenceInitializer sequenceInitializer) {
         this.calendarEventRepository = calendarEventRepository;
         this.sequenceInitializer = sequenceInitializer;
     }
@@ -46,6 +48,7 @@ public class CalendarEventService {
             .toList();
     }
 
+    @Transactional
     public CalendarEventDto create(String username, CalendarEventRequest request) {
         validate(request);
         CalendarEventEntity entity = new CalendarEventEntity();
@@ -64,6 +67,7 @@ public class CalendarEventService {
         }
     }
 
+    @Transactional
     public CalendarEventDto update(String username, Long id, CalendarEventRequest request) {
         validate(request);
         CalendarEventEntity entity = calendarEventRepository.findById(id)
@@ -79,6 +83,7 @@ public class CalendarEventService {
         return toDto(calendarEventRepository.save(entity));
     }
 
+    @Transactional
     public void delete(String username, Long id) {
         CalendarEventEntity entity = calendarEventRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Evento non trovato"));

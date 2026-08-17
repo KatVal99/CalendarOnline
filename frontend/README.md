@@ -1,44 +1,57 @@
-# Budget Club - Frontend React + TypeScript
+# Budget Club & Calendar - Frontend React + TypeScript
 
-Frontend React/TypeScript/Vite che sostituisce i file HTML/JS statici del progetto Spring Boot.
+Frontend moderno sviluppato in React 18, TypeScript e Vite, integrato con il backend Spring Boot e predisposto per packaging mobile tramite Capacitor.
 
-## Struttura
+---
+
+## 📂 Struttura del Progetto
 
 ```
 frontend/
+├── public/                 # Asset statici (immagini, icone)
 ├── src/
 │   ├── api/
-│   │   └── client.ts          # Wrapper REST verso Spring Boot
+│   │   └── client.ts       # Client HTTP e wrapper REST verso Spring Boot
 │   ├── components/
-│   │   ├── CalendarWidget.tsx  # Calendario con CRUD appuntamenti
-│   │   ├── ErrorModal.tsx      # Modal errori
-│   │   ├── LiveClock.tsx       # Orologio live
-│   │   ├── Navbar.tsx          # Barra navigazione
-│   │   ├── PaginatedTable.tsx  # Tabella generica con paginazione
-│   │   ├── PixelStars.tsx      # Animazione stelle retro (canvas)
-│   │   └── Toast.tsx           # Notifiche temporanee
+│   │   ├── CalendarWidget.tsx        # Widget Calendario & Appuntamenti con CRUD
+│   │   ├── CategoryCharts.tsx        # Grafici Recharts per categorie e trend
+│   │   ├── CategoryLimitsWidget.tsx  # Gestione limiti di spesa
+│   │   ├── SavingsGoalsWidget.tsx    # Gestione salvadanai, versamenti e transazioni
+│   │   ├── RunnerArcade.tsx          # Retro mini-game Pixel Runner
+│   │   ├── CoinCatcherArcade.tsx     # Retro mini-game Coin Catcher
+│   │   ├── SudokuArcade.tsx          # Retro mini-game Sudoku
+│   │   ├── LiveClock.tsx             # Orologio digitale in tempo reale
+│   │   ├── Navbar.tsx                # Barra di navigazione con stato utente
+│   │   ├── PaginatedTable.tsx        # Tabella generica riutilizzabile con paginazione
+│   │   ├── PixelStars.tsx            # Animazione sfondo canvas a stelle pixel
+│   │   ├── Toast.tsx                 # Notifiche toast temporanee
+│   │   └── ErrorBoundary.tsx         # Gestione e cattura errori React
 │   ├── context/
-│   │   └── AuthContext.tsx     # Stato autenticazione globale
+│   │   └── AuthContext.tsx           # Gestione globale autenticazione JWT
 │   ├── pages/
-│   │   ├── DashboardPage.tsx   # → index.html
-│   │   ├── HelpPage.tsx        # → help.html
-│   │   ├── LoginPage.tsx       # → login.html
-│   │   ├── OperationsPage.tsx  # → operations.html
-│   │   ├── ReportPage.tsx      # → report.html
-│   │   └── ResetPasswordPage.tsx # → reset-password.html
+│   │   ├── DashboardPage.tsx         # Panoramica saldi, grafici, previsioni e prossimi eventi
+│   │   ├── OperationsPage.tsx        # Gestione entrate, spese, debiti, flexia, abbonamenti
+│   │   ├── ReportPage.tsx            # Report mensile e statistiche
+│   │   ├── GamePage.tsx              # Sala giochi arcade retro
+│   │   ├── HelpPage.tsx              # Guida all'uso dell'applicazione
+│   │   ├── LoginPage.tsx             # Login e registrazione
+│   │   └── ResetPasswordPage.tsx     # Reimpostazione password tramite token email
 │   ├── styles/
-│   │   └── style.css           # Tema retro arcade
+│   │   └── style.css                 # Design system Vanilla CSS (tema retro Spidey/Arcade)
 │   ├── types/
-│   │   └── index.ts            # Interfacce TypeScript
-│   ├── App.tsx                 # Router + layout
-│   └── main.tsx                # Entry point
-├── index.html
+│   │   └── index.ts                  # Definizioni dei tipi TypeScript
+│   ├── utils/
+│   │   └── arcadeAudio.ts            # Sintetizzatore audio retro con Web Audio API
+│   ├── App.tsx                       # Routing principale SPA (React Router)
+│   └── main.tsx                      # Entry point React
 ├── package.json
-├── vite.config.ts              # Proxy /api → localhost:8080
-└── tsconfig.json
+├── tsconfig.json
+└── vite.config.ts                    # Configurazione Vite e proxy /api verso Spring Boot (8080)
 ```
 
-## Avvio
+---
+
+## 🚀 Avvio in Sviluppo
 
 ```bash
 cd frontend
@@ -46,26 +59,31 @@ npm install
 npm run dev
 ```
 
-Il frontend gira su **http://localhost:5173**.  
-Tutte le chiamate `/api/*` vengono proxate automaticamente verso **http://localhost:8080** (backend Spring Boot).
+L'applicazione sarà disponibile all'indirizzo **http://localhost:5173**.  
+Le richieste verso `/api/*` vengono instradate automaticamente verso il backend attivo su `http://localhost:8080`.
 
-## Route
+---
 
-| URL                       | Pagina             |
-|---------------------------|--------------------|
-| `/`                       | Dashboard          |
-| `/login`                  | Login / Registrazione |
-| `/operations`             | Operazioni CRUD    |
-| `/report`                 | Report mensile     |
-| `/help`                   | Guida              |
-| `/reset-password?token=…` | Reset password     |
+## 📱 Build di Produzione e Capacitor Android
 
-## Differenze dall'HTML statico
+```bash
+# Build della SPA web ottimizzata
+npm run build
 
-- HTML ora è **JSX dentro file `.tsx`** (TypeScript + React)
-- Autenticazione gestita con **React Context** invece di `localStorage` raw
-- **React Router** per la navigazione SPA (no reload di pagina)
-- **Componenti riutilizzabili**: `PaginatedTable`, `CalendarWidget`, `Toast`, `ErrorModal`
-- **Tipizzazione completa** con interfacce TypeScript
-- Proxy Vite elimina problemi CORS in sviluppo
+# Sincronizzazione con il progetto Android (se si usa Capacitor)
+npx cap sync android
+```
 
+---
+
+## 🧭 Mappa delle Route
+
+| Percorso | Vista | Descrizione |
+|---|---|---|
+| `/` | `DashboardPage` | Saldo, grafici spese/limiti, forecast, salvadanai e appuntamenti |
+| `/operations` | `OperationsPage` | Inserimento e gestione entrate, uscite, debiti, abbonamenti e flexia |
+| `/report` | `ReportPage` | Report analitico mensile e grafici di spesa |
+| `/game` | `GamePage` | Sala arcade con mini-giochi retro |
+| `/help` | `HelpPage` | Documentazione e guida operativa |
+| `/login` | `LoginPage` | Autenticazione e creazione nuovo account |
+| `/reset-password` | `ResetPasswordPage` | Conferma reimpostazione password |

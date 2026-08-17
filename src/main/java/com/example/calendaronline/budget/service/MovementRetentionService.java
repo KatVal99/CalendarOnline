@@ -1,5 +1,6 @@
 package com.example.calendaronline.budget.service;
 
+import com.example.calendaronline.budget.model.BudgetDefaults;
 import com.example.calendaronline.budget.model.BudgetEvent;
 import com.example.calendaronline.budget.model.BudgetEventType;
 import com.example.calendaronline.budget.persistence.BudgetEventEntity;
@@ -53,7 +54,7 @@ public class MovementRetentionService {
                 cutoffDate,
                 null,
                 null,
-                "Carryover"
+                BudgetDefaults.CATEGORY_CARRYOVER
             );
             budgetEventRepository.save(BudgetEventMapper.toEntity(carryover));
         }

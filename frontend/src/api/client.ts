@@ -1,8 +1,22 @@
-// ============================================================
-// API CLIENT - Wrapper REST allineato ai DTO del backend
-// ============================================================
+export type {
+  DashboardData,
+  CalendarEvent,
+  SavingsGoal,
+  SavingsGoalTransaction,
+  CategoryLimit,
+  CategorySummary,
+  CashflowForecast,
+};
 
-import type { DashboardData, CalendarEvent } from '../types';
+import type {
+  DashboardData,
+  CalendarEvent,
+  SavingsGoal,
+  SavingsGoalTransaction,
+  CategoryLimit,
+  CategorySummary,
+  CashflowForecast,
+} from '../types';
 
 const customApiUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('spideyApiUrl') : null;
 const envApiUrl = (import.meta as any).env?.VITE_API_BASE_URL;
@@ -146,40 +160,30 @@ export const createExpense = (description: string, amount: number, category?: st
 export const deleteExpense = (id: string) => deleteRequest(`/budget/expenses/${id}`);
 
 // ---- SAVINGS GOALS ----
-export interface SavingsGoalTransaction {
-  id: string;
-  savingsGoalId: string;
-  username: string;
-  amount: number;
-  note?: string;
-  eventId?: string;
-  createdAt: string;
-}
-
-export const fetchSavingsGoals = () => getJson<any[]>('/budget/savings-goals');
+export const fetchSavingsGoals = () => getJson<SavingsGoal[]>('/budget/savings-goals');
 export const createSavingsGoal = (name: string, targetAmount: number, targetDate?: string, icon?: string) =>
-  postJson('/budget/savings-goals', { name, targetAmount, targetDate, icon });
+  postJson<SavingsGoal>('/budget/savings-goals', { name, targetAmount, targetDate, icon });
 export const updateSavingsGoal = (id: string, name: string, targetAmount: number, targetDate?: string, icon?: string) =>
-  putJson(`/budget/savings-goals/${id}`, { name, targetAmount, targetDate, icon });
-export const deleteSavingsGoal = (id: string) => deleteRequest(`/budget/savings-goals/${id}`);
+  putJson<SavingsGoal>(`/budget/savings-goals/${id}`, { name, targetAmount, targetDate, icon });
+export const deleteSavingsGoal = (id: string) => deleteRequest<{ status: string }>(`/budget/savings-goals/${id}`);
 export const depositSavingsGoal = (id: string, amount: number) =>
-  postJson(`/budget/savings-goals/${id}/deposit`, { amount });
+  postJson<SavingsGoal>(`/budget/savings-goals/${id}/deposit`, { amount });
 
 export const fetchSavingsGoalTransactions = (goalId: string) =>
   getJson<SavingsGoalTransaction[]>(`/budget/savings-goals/${goalId}/transactions`);
 export const deleteSavingsGoalTransaction = (goalId: string, txId: string) =>
-  deleteRequest(`/budget/savings-goals/${goalId}/transactions/${txId}`);
+  deleteRequest<{ status: string }>(`/budget/savings-goals/${goalId}/transactions/${txId}`);
 export const updateSavingsGoalTransaction = (goalId: string, txId: string, amount: number, note?: string) =>
-  putJson(`/budget/savings-goals/${goalId}/transactions/${txId}`, { amount, note });
+  putJson<SavingsGoalTransaction>(`/budget/savings-goals/${goalId}/transactions/${txId}`, { amount, note });
 
 // ---- CATEGORY LIMITS & SUMMARY ----
-export const fetchCategoryLimits = () => getJson<any[]>('/budget/category-limits');
+export const fetchCategoryLimits = () => getJson<CategoryLimit[]>('/budget/category-limits');
 export const setCategoryLimit = (category: string, monthlyLimit: number) =>
-  postJson('/budget/category-limits', { category, monthlyLimit });
-export const fetchCategorySummary = () => getJson<any>('/budget/categories/summary');
+  postJson<CategoryLimit>('/budget/category-limits', { category, monthlyLimit });
+export const fetchCategorySummary = () => getJson<CategorySummary>('/budget/categories/summary');
 
 // ---- CASHFLOW FORECAST ----
-export const fetchForecast = () => getJson<any>('/budget/forecast');
+export const fetchForecast = () => getJson<CashflowForecast>('/budget/forecast');
 
 // ---- DEBTS ----
 // DebtRequest: { label, totalAmount, startMonth, durationMonths }

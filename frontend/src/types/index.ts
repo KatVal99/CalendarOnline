@@ -52,6 +52,57 @@ export interface DebtView {
   remaining: number;
 }
 
+/** SavingsGoalEntity record */
+export interface SavingsGoal {
+  id: string;
+  username: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string;
+  icon?: string;
+  createdAt: string;
+}
+
+/** SavingsGoalTransactionEntity record */
+export interface SavingsGoalTransaction {
+  id: string;
+  savingsGoalId: string;
+  username: string;
+  amount: number;
+  note?: string;
+  eventId?: string;
+  createdAt: string;
+}
+
+/** CategoryLimitEntity record */
+export interface CategoryLimit {
+  id: string;
+  username: string;
+  category: string;
+  monthlyLimit: number;
+  updatedAt?: string;
+}
+
+/** Category Summary response */
+export interface CategorySummary {
+  currentMonth: string;
+  expensesByCategory: Record<string, number>;
+  limitsByCategory: Record<string, number>;
+}
+
+/** Forecast response */
+export interface CashflowForecast {
+  currentBalance: number;
+  avgMonthlyIncome: number;
+  avgMonthlyExpense: number;
+  subscriptionsTotal: number;
+  netMonthlyChange: number;
+  forecast3Months: number;
+  forecast6Months: number;
+  forecast12Months: number;
+}
+
 /** CalendarEventDto record */
 export interface CalendarEvent {
   id: number;
@@ -59,7 +110,7 @@ export interface CalendarEvent {
   time: string | null;
   eventType: CalendarEventType;
   reminderMinutes: number | null;
-  title: string;         // NB: si chiama "title" non "description"
+  title: string;
 }
 
 export type CalendarEventType =
