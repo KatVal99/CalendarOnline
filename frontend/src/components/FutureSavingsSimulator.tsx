@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 interface PlannedExpense {
   id: string;
   yearMonth: string; // YYYY-MM
-  amount: number;    // Valore positivo per spesa (verrà sottratto)
+  amount: number;    // Importo spesa (positivo, verrà sottratto)
   label: string;
 }
 
@@ -16,41 +16,49 @@ function formatCurrency(n: number): string {
 }
 
 function formatMonthName(yearMonth: string): string {
+  if (!yearMonth) return '';
   const [year, month] = yearMonth.split('-');
   const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
   return date.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
 }
 
 export default function FutureSavingsSimulator({ currentBalance }: Props) {
-  // Quota mensile fissa da mettere da parte
+  const currentYearMonth = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  // Mese di destinazione (target month) fino al quale calcolare la proiezione
+  const [targetMonth, setTargetMonth] = useState<string>(() => {
+    const saved = localStorage.getItem('sim_target_month');
+    if (saved && saved >= currentYearMonth) return saved;
+    // Default: Dicembre dell'anno corrente o +4 mesi
+    const now = new Date();
+    const dec = `${now.getFullYear()}-12`;
+    if (dec >= currentYearMonth) return dec;
+    const next4 = new Date(now.getFullYear(), now.getMonth() + 4, 1);
+    return `${next4.getFullYear()}-${String(next4.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // Quota mensile fissa da mettere da parte (default 1000 o salvato)
   const [monthlySavings, setMonthlySavings] = useState<number>(() => {
     const saved = localStorage.getItem('sim_monthly_savings');
-    return saved ? parseFloat(saved) : 1000;
+    return saved !== null ? parseFloat(saved) : 1000;
   });
 
-  // Orizzonte temporale (3, 6, 12 mesi)
-  const [horizonMonths, setHorizonMonths] = useState<number>(() => {
-    const saved = localStorage.getItem('sim_horizon_months');
-    return saved ? parseInt(saved, 10) : 6;
-  });
-
-  // Lista spese / uscite straordinarie pianificate
+  // Lista spese / uscite straordinarie pianificate (inizia VUOTA, nessun dato finto)
   const [plannedExpenses, setPlannedExpenses] = useState<PlannedExpense[]>(() => {
     const saved = localStorage.getItem('sim_planned_expenses');
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
     }
-    // Default di esempio se non impostato
-    const now = new Date();
-    const m1 = new Date(now.getFullYear(), now.getMonth() + 2, 1).toISOString().substring(0, 7); // es. +2 mesi
-    const m2 = new Date(now.getFullYear(), now.getMonth() + 4, 1).toISOString().substring(0, 7); // es. +4 mesi
-    return [
-      { id: '1', yearMonth: m1, amount: 300, label: 'Tagliando / Assicurazione' },
-      { id: '2', yearMonth: m2, amount: 500, label: 'Spesa straordinaria / Vacanza' }
-    ];
+    return [];
   });
 
-  // Form state per aggiungere spesa pianificata
+  // Form state per aggiungere spesa programmata
   const [newMonth, setNewMonth] = useState('');
   const [newAmount, setNewAmount] = useState('');
   const [newLabel, setNewLabel] = useState('');
@@ -61,38 +69,58 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
   }, [monthlySavings]);
 
   useEffect(() => {
-    localStorage.setItem('sim_horizon_months', horizonMonths.toString());
-  }, [horizonMonths]);
+    localStorage.setItem('sim_target_month', targetMonth);
+  }, [targetMonth]);
 
   useEffect(() => {
     localStorage.setItem('sim_planned_expenses', JSON.stringify(plannedExpenses));
   }, [plannedExpenses]);
 
-  // Genera elenco dei mesi futuri in base all'orizzonte selezionato
-  const futureMonths = useMemo(() => {
+  // Genera elenco opzioni mesi futuri selezionabili (da mese corrente a +24 mesi)
+  const availableTargetMonths = useMemo(() => {
+    const list: string[] = [];
+    const now = new Date();
+    for (let i = 0; i <= 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      list.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
+    return list;
+  }, []);
+
+  // Genera tutti i mesi compresi tra il mese corrente e il mese target
+  const projectionMonths = useMemo(() => {
     const months: string[] = [];
     const now = new Date();
-    for (let i = 1; i <= horizonMonths; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      months.push(d.toISOString().substring(0, 7));
+    const [tYear, tMonth] = targetMonth.split('-').map(Number);
+    const targetDate = new Date(tYear, tMonth - 1, 1);
+
+    let iter = new Date(now.getFullYear(), now.getMonth(), 1);
+    while (iter <= targetDate) {
+      const ym = `${iter.getFullYear()}-${String(iter.getMonth() + 1).padStart(2, '0')}`;
+      months.push(ym);
+      iter = new Date(iter.getFullYear(), iter.getMonth() + 1, 1);
+    }
+
+    if (months.length === 0) {
+      months.push(currentYearMonth);
     }
     return months;
-  }, [horizonMonths]);
+  }, [targetMonth, currentYearMonth]);
 
-  // Imposta mese default per nuova spesa se non impostato
+  // Imposta mese default per il form di aggiunta spesa
   useEffect(() => {
-    if (!newMonth && futureMonths.length > 0) {
-      setNewMonth(futureMonths[0]);
+    if (!newMonth && projectionMonths.length > 0) {
+      setNewMonth(projectionMonths[0]);
     }
-  }, [futureMonths, newMonth]);
+  }, [projectionMonths, newMonth]);
 
   // Calcolo mese per mese
   const monthCalculations = useMemo(() => {
     let accumulatedSavings = 0;
     let runningBalance = currentBalance;
 
-    return futureMonths.map((ym) => {
-      // Trova tutte le spese pianificate per questo mese
+    return projectionMonths.map((ym) => {
+      // Spese pianificate per questo mese
       const expensesInMonth = plannedExpenses.filter((p) => p.yearMonth === ym);
       const totalExpensesInMonth = expensesInMonth.reduce((sum, p) => sum + p.amount, 0);
 
@@ -114,13 +142,15 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
         runningBalance
       };
     });
-  }, [futureMonths, plannedExpenses, monthlySavings, currentBalance]);
+  }, [projectionMonths, plannedExpenses, monthlySavings, currentBalance]);
 
   const totalFinalSavings = monthCalculations.length > 0
     ? monthCalculations[monthCalculations.length - 1].accumulatedSavings
     : 0;
 
-  const totalFinalBalance = currentBalance + totalFinalSavings;
+  const totalFinalBalance = monthCalculations.length > 0
+    ? monthCalculations[monthCalculations.length - 1].runningBalance
+    : currentBalance;
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,37 +178,41 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
             🔮 Calcolatore Risparmio & Spese Future
           </h3>
           <p style={{ margin: '0.3rem 0 0 0', color: '#a0a0c0', fontSize: '0.9rem' }}>
-            Simula quanto denaro avrai messo da parte nei prossimi mesi togliendo le spese programmate.
+            Simula quanto denaro metterai da parte fino al mese scelto togliendo le spese straordinarie.
           </p>
         </div>
 
-        {/* Selettore Orizzonte Mesi */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.85rem', color: '#ccc', fontWeight: 600 }}>Orizzonte:</span>
-          {[3, 6, 12].map(m => (
-            <button
-              key={m}
-              type="button"
-              className={`btn btn-small ${horizonMonths === m ? 'btn-green' : ''}`}
-              onClick={() => setHorizonMonths(m)}
-              style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                background: horizonMonths === m ? 'var(--green)' : 'rgba(255,255,255,0.08)',
-                color: horizonMonths === m ? '#000' : '#fff',
-                fontWeight: 'bold'
-              }}
-            >
-              {m} Mesi
-            </button>
-          ))}
+        {/* SELETTORE MESE DI DESTINAZIONE */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', background: 'rgba(0,0,0,0.4)', padding: '0.5rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(0,255,136,0.3)' }}>
+          <span style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 700 }}>🎯 Calcola fino a:</span>
+          <select
+            value={targetMonth}
+            onChange={(e) => setTargetMonth(e.target.value)}
+            style={{
+              padding: '0.45rem 0.75rem',
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              background: '#1c1c2e',
+              border: '1px solid var(--green)',
+              borderRadius: '6px',
+              color: 'var(--green)',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            {availableTargetMonths.map(ym => (
+              <option key={ym} value={ym}>
+                {formatMonthName(ym)}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* RIEPILOGO TOTALI IN EVIDENZA */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
         gap: '1rem',
         marginBottom: '1.5rem'
       }}>
@@ -190,13 +224,13 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
           boxShadow: '0 0 15px rgba(0, 255, 136, 0.15)'
         }}>
           <div style={{ fontSize: '0.85rem', color: '#a0ffcc', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
-            💰 Totale Messo da Parte (+{horizonMonths} mesi)
+            💰 Totale Messo da Parte a {formatMonthName(targetMonth)}
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00ff88', marginTop: '0.4rem' }}>
+          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#00ff88', marginTop: '0.4rem' }}>
             {formatCurrency(totalFinalSavings)}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#ccc', marginTop: '0.3rem' }}>
-            Somma netta risparmiata al termine di {monthCalculations.length > 0 ? monthCalculations[monthCalculations.length - 1].monthLabel : ''}
+            Risparmio netto complessivo accumulato entro fine {formatMonthName(targetMonth)} ({projectionMonths.length} mesi)
           </div>
         </div>
 
@@ -208,9 +242,9 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
           boxShadow: '0 0 15px rgba(0, 255, 255, 0.15)'
         }}>
           <div style={{ fontSize: '0.85rem', color: '#a0ffff', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>
-            🕷️ Saldo Totale Previsto a Fine Periodo
+            🕷️ Saldo Totale Previsto a {formatMonthName(targetMonth)}
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#00ffff', marginTop: '0.4rem' }}>
+          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#00ffff', marginTop: '0.4rem' }}>
             {formatCurrency(totalFinalBalance)}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#ccc', marginTop: '0.3rem' }}>
@@ -275,7 +309,7 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
                 fontWeight: 600
               }}
             >
-              {futureMonths.map(ym => (
+              {projectionMonths.map(ym => (
                 <option key={ym} value={ym} style={{ background: '#1c1c2e', color: '#fff' }}>
                   {formatMonthName(ym)}
                 </option>
@@ -329,7 +363,7 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
       {/* TABELLA DETTAGLIATA MESE PER MESE */}
       <div>
         <h4 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>
-          🗓️ Tabella di Proiezione Mese per Mese
+          🗓️ Tabella di Proiezione Mese per Mese (Fino a {formatMonthName(targetMonth)})
         </h4>
 
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
