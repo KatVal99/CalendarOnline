@@ -132,7 +132,7 @@ class BudgetEngineTest {
     }
 
     @Test
-    void julyMonthlyCloseConsumesJuneFlexiaIfJulyFlexiaMissing() {
+    void monthlyCloseOnlyConsumesMatchingMonthFlexia() {
         BudgetEngine engine = new BudgetEngine();
         String currentMonth = YearMonth.now().toString();
         String previousMonth = YearMonth.now().minusMonths(1).toString();
@@ -143,8 +143,8 @@ class BudgetEngineTest {
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
-        assertThat(snapshot.currentBalance()).isEqualByComparingTo("880.00");
-        assertThat(snapshot.flexiaByMonth()).doesNotContainKey(previousMonth);
+        // Balance remains 1000 because previous month's flexia is not charged into current month
+        assertThat(snapshot.currentBalance()).isEqualByComparingTo("1000.00");
     }
 }
 

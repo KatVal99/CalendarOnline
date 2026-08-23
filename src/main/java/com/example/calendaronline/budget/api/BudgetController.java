@@ -121,8 +121,10 @@ public class BudgetController {
 
     @PostMapping("/flexia")
     public Map<String, String> setFlexia(@RequestBody FlexiaRequest request, Principal principal) {
+        String username = principal.getName();
+        budgetEventRepository.deleteFlexiaEventsByUsernameAndYearMonth(username, request.yearMonth());
         publisher.publish(new BudgetEvent(
-            UUID.randomUUID().toString(), principal.getName(),
+            UUID.randomUUID().toString(), username,
             BudgetEventType.FLEXIA_SET, request.amount(), BudgetDefaults.DESC_FLEXIA_DEFAULT,
             LocalDate.now(), request.yearMonth(), null, BudgetDefaults.CATEGORY_FLEXIA
         ));
@@ -131,12 +133,9 @@ public class BudgetController {
 
     @DeleteMapping("/flexia/{yearMonth}")
     public Map<String, String> removeFlexia(@PathVariable String yearMonth, Principal principal) {
-        publisher.publish(new BudgetEvent(
-            UUID.randomUUID().toString(), principal.getName(),
-            BudgetEventType.FLEXIA_REMOVED, null, BudgetDefaults.DESC_FLEXIA_REMOVED,
-            LocalDate.now(), yearMonth, null, BudgetDefaults.CATEGORY_FLEXIA
-        ));
-        return Map.of("status", "accepted");
+        String username = principal.getName();
+        budgetEventRepository.deleteFlexiaEventsByUsernameAndYearMonth(username, yearMonth);
+        return Map.of("status", "deleted");
     }
 
     // --- DEBTS ---

@@ -160,16 +160,19 @@ public class BudgetEngine {
                                          Map<YearMonth, BigDecimal> flexiaByMonth,
                                          Map<String, BigDecimal> monthlyIncomes,
                                          Map<String, BigDecimal> monthlyExpenses) {
-        YearMonth flexiaMonthToCharge = resolveFlexiaMonthToCharge(flexiaByMonth, yearMonth);
-        BigDecimal flexiaAmount = flexiaMonthToCharge == null
-            ? BigDecimal.ZERO
-            : flexiaByMonth.getOrDefault(flexiaMonthToCharge, BigDecimal.ZERO);
-        if (flexiaAmount.compareTo(BigDecimal.ZERO) > 0) {
-            currentBalance = applyDelta(currentBalance, ledgerEntries,
-                flexiaAmount.negate(), "Flexia " + flexiaMonthToCharge,
-                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                monthlyIncomes, monthlyExpenses, null);
-            flexiaByMonth.remove(flexiaMonthToCharge);
+        BigDecimal flexiaAmount = flexiaByMonth.remove(yearMonth);
+        if (flexiaAmount != null && flexiaAmount.compareTo(BigDecimal.ZERO) > 0) {
+            String desc = "Flexia " + yearMonth;
+            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
+                e.source() == BudgetEventType.MONTHLY_CLOSE &&
+                desc.equalsIgnoreCase(e.description())
+            );
+            if (!alreadyInLedger) {
+                currentBalance = applyDelta(currentBalance, ledgerEntries,
+                    flexiaAmount.negate(), desc,
+                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                    monthlyIncomes, monthlyExpenses, null);
+            }
         }
 
         for (Subscription subscription : subscriptions.values()) {
@@ -207,16 +210,6 @@ public class BudgetEngine {
         debtPlans.entrySet().removeIf(entry -> entry.getValue().remaining().compareTo(BigDecimal.ZERO) <= 0);
 
         return currentBalance;
-    }
-
-    private YearMonth resolveFlexiaMonthToCharge(Map<YearMonth, BigDecimal> flexiaByMonth, YearMonth closeMonth) {
-        if (flexiaByMonth.containsKey(closeMonth)) {
-            return closeMonth;
-        }
-        return flexiaByMonth.keySet().stream()
-            .filter(month -> !month.isAfter(closeMonth))
-            .max(YearMonth::compareTo)
-            .orElse(null);
     }
 
     private BigDecimal applyDelta(BigDecimal currentBalance,
