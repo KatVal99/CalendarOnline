@@ -89,7 +89,7 @@ public class BudgetEngine {
             .filter(plan -> plan.isListedForCurrentMonth(currentMonth))
             .map(plan -> new DebtView(
                 plan.label(), plan.startMonth().toString(), plan.endMonth().toString(),
-                plan.monthlyInstallment(), plan.remaining()
+                plan.monthlyInstallment(), plan.remaining(), plan.durationMonths()
             ))
             .toList();
 

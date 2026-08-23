@@ -147,13 +147,22 @@ public class BudgetController {
         return Map.of("status", "accepted");
     }
 
+    @PutMapping("/debts/{oldLabel}")
+    public Map<String, String> updateDebt(@PathVariable String oldLabel, @RequestBody DebtRequest request, Principal principal) {
+        String username = principal.getName();
+        budgetEventRepository.deleteDebtEventsByUsernameAndLabel(username, oldLabel);
+        publisher.publish(new BudgetEvent(
+            UUID.randomUUID().toString(), username,
+            BudgetEventType.DEBT_CREATED, request.totalAmount(), request.label(),
+            LocalDate.now(), request.startMonth(), request.durationMonths(), BudgetDefaults.CATEGORY_DEBTS
+        ));
+        return Map.of("status", "updated");
+    }
+
     @DeleteMapping("/debts/{label}")
     public Map<String, String> removeDebt(@PathVariable String label, Principal principal) {
-        publisher.publish(new BudgetEvent(
-            UUID.randomUUID().toString(), principal.getName(),
-            BudgetEventType.DEBT_REMOVED, null, label,
-            LocalDate.now(), null, null, BudgetDefaults.CATEGORY_DEBTS
-        ));
+        String username = principal.getName();
+        budgetEventRepository.deleteDebtEventsByUsernameAndLabel(username, label);
         return Map.of("status", "accepted");
     }
 

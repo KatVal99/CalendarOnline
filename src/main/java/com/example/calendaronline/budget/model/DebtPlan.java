@@ -10,16 +10,22 @@ public class DebtPlan {
     private final YearMonth startMonth;
     private final YearMonth endMonth;
     private final BigDecimal monthlyInstallment;
+    private final int durationMonths;
     private BigDecimal remaining;
 
     public DebtPlan(String label, BigDecimal totalAmount, YearMonth startMonth, int durationMonths) {
         this.label = label;
         this.startMonth = startMonth;
         int safeDurationMonths = Math.max(1, durationMonths);
+        this.durationMonths = safeDurationMonths;
         this.endMonth = startMonth.plusMonths(safeDurationMonths - 1L);
         BigDecimal safeTotal = totalAmount != null ? totalAmount : BigDecimal.ZERO;
         this.remaining = safeTotal;
         this.monthlyInstallment = safeTotal.divide(BigDecimal.valueOf(safeDurationMonths), 2, RoundingMode.HALF_UP);
+    }
+
+    public int durationMonths() {
+        return durationMonths;
     }
 
     public String label() {

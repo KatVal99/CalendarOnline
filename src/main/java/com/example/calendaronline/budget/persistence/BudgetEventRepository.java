@@ -32,6 +32,11 @@ public interface BudgetEventRepository extends JpaRepository<BudgetEventEntity, 
 
     @Modifying
     @Transactional
+    @Query("delete from BudgetEventEntity e where e.username = :username and e.description = :label and (e.type = 'DEBT_CREATED' or e.type = 'DEBT_REMOVED')")
+    int deleteDebtEventsByUsernameAndLabel(String username, String label);
+
+    @Modifying
+    @Transactional
     @Query("delete from BudgetEventEntity e where e.username = :username and e.type = :type")
     int deleteByUsernameAndType(String username, BudgetEventType type);
 }

@@ -50,6 +50,7 @@ export interface DebtView {
   endMonth: string;
   monthlyInstallment: number;
   remaining: number;
+  durationMonths?: number;
 }
 
 /** SavingsGoalEntity record */

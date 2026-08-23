@@ -194,6 +194,13 @@ export const createDebt = (
   startMonth: string,
   durationMonths: number,
 ) => postJson('/budget/debts', { label, totalAmount, startMonth, durationMonths });
+export const updateDebt = (
+  oldLabel: string,
+  label: string,
+  totalAmount: number,
+  startMonth: string,
+  durationMonths: number,
+) => putJson(`/budget/debts/${encodeURIComponent(oldLabel)}`, { label, totalAmount, startMonth, durationMonths });
 export const deleteDebt = (label: string) =>
   deleteRequest(`/budget/debts/${encodeURIComponent(label)}`);
 

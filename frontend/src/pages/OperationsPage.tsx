@@ -4,7 +4,7 @@ import {
   fetchDashboard,
   createIncome, deleteIncome,
   createExpense, deleteExpense,
-  createDebt, deleteDebt,
+  createDebt, updateDebt, deleteDebt,
   createFlexia, deleteFlexia,
   createSubscription, deleteSubscription,
 } from '../api/client';
@@ -56,6 +56,18 @@ export default function OperationsPage() {
   const [submittingFlexia, setSubmittingFlexia] = useState(false);
   const [submittingSub, setSubmittingSub] = useState(false);
 
+  // Edit Debt State
+  interface EditDebtState {
+    oldLabel: string;
+    label: string;
+    installment: string;
+    totalAmt: string;
+    duration: string;
+    startMonth: string;
+  }
+  const [editingDebt, setEditingDebt] = useState<EditDebtState | null>(null);
+  const [savingEditDebt, setSavingEditDebt] = useState(false);
+
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
   const showError = (msg: string) => setError({ title: 'Errore', message: msg });
 
@@ -96,6 +108,92 @@ export default function OperationsPage() {
       } else if (!isNaN(tot) && tot > 0) {
         setDebtInstallment((tot / dur).toFixed(2));
       }
+    }
+  };
+
+  // Handlers per Modifica Debito
+  const handleOpenEditDebt = (d: DebtView) => {
+    const dur = d.durationMonths || 1;
+    const inst = d.monthlyInstallment || 0;
+    const tot = d.remaining || (inst * dur);
+    setEditingDebt({
+      oldLabel: d.label,
+      label: d.label,
+      installment: inst.toString(),
+      totalAmt: tot.toString(),
+      duration: dur.toString(),
+      startMonth: d.startMonth || new Date().toISOString().substring(0, 7)
+    });
+  };
+
+  const handleEditDebtInstallmentChange = (val: string) => {
+    if (!editingDebt) return;
+    const inst = parseFloat(val);
+    const dur = parseInt(editingDebt.duration, 10);
+    let newTot = editingDebt.totalAmt;
+    if (!isNaN(inst) && inst > 0 && !isNaN(dur) && dur > 0) {
+      newTot = (inst * dur).toFixed(2);
+    }
+    setEditingDebt({ ...editingDebt, installment: val, totalAmt: newTot });
+  };
+
+  const handleEditDebtTotalChange = (val: string) => {
+    if (!editingDebt) return;
+    const tot = parseFloat(val);
+    const dur = parseInt(editingDebt.duration, 10);
+    let newInst = editingDebt.installment;
+    if (!isNaN(tot) && tot > 0 && !isNaN(dur) && dur > 0) {
+      newInst = (tot / dur).toFixed(2);
+    }
+    setEditingDebt({ ...editingDebt, totalAmt: val, installment: newInst });
+  };
+
+  const handleEditDebtDurationChange = (val: string) => {
+    if (!editingDebt) return;
+    const dur = parseInt(val, 10);
+    let newTot = editingDebt.totalAmt;
+    let newInst = editingDebt.installment;
+    if (!isNaN(dur) && dur > 0) {
+      const inst = parseFloat(editingDebt.installment);
+      const tot = parseFloat(editingDebt.totalAmt);
+      if (!isNaN(inst) && inst > 0) {
+        newTot = (inst * dur).toFixed(2);
+      } else if (!isNaN(tot) && tot > 0) {
+        newInst = (tot / dur).toFixed(2);
+      }
+    }
+    setEditingDebt({ ...editingDebt, duration: val, totalAmt: newTot, installment: newInst });
+  };
+
+  const handleSaveEditDebt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDebt) return;
+    setSavingEditDebt(true);
+    try {
+      const dur = parseInt(editingDebt.duration, 10) || 1;
+      let finalTotal = parseFloat(editingDebt.totalAmt);
+      if (isNaN(finalTotal) || finalTotal <= 0) {
+        const inst = parseFloat(editingDebt.installment);
+        if (!isNaN(inst) && inst > 0) {
+          finalTotal = inst * dur;
+        } else {
+          throw new Error('Inserisci una rata o un totale valido.');
+        }
+      }
+      await updateDebt(
+        editingDebt.oldLabel,
+        editingDebt.label,
+        finalTotal,
+        editingDebt.startMonth,
+        dur
+      );
+      showToast('Debito modificato con successo ✅');
+      setEditingDebt(null);
+      await load();
+    } catch (err) {
+      showError((err as Error).message);
+    } finally {
+      setSavingEditDebt(false);
     }
   };
 
@@ -371,11 +469,33 @@ export default function OperationsPage() {
               { header: 'Inizio', render: (r: DebtView) => <span style={{ fontSize: '0.85rem', color: '#bbb' }}>{r.startMonth}</span> },
               { header: 'Fine', render: (r: DebtView) => <span style={{ fontSize: '0.85rem', color: '#bbb' }}>{r.endMonth}</span> },
               { header: 'Residuo', render: (r: DebtView) => <span style={{ color: '#fff', fontWeight: 'bold' }}>{formatCurrency(r.remaining)}</span> },
-              { header: '', render: (r: DebtView) => <button className="btn btn-small btn-danger" title="Elimina debito" onClick={() => {
-                if (confirm(`Eliminare il debito "${r.label}"?`)) {
-                  deleteDebt(r.label).then(load).catch(e => showError((e as Error).message));
-                }
-              }}>🗑️ Elimina</button> },
+              {
+                header: 'Azioni',
+                render: (r: DebtView) => (
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      className="btn btn-small btn-yellow"
+                      title="Modifica debito"
+                      onClick={() => handleOpenEditDebt(r)}
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    >
+                      ✏️ Modifica
+                    </button>
+                    <button
+                      className="btn btn-small btn-danger"
+                      title="Elimina debito"
+                      onClick={() => {
+                        if (confirm(`Eliminare il debito "${r.label}"?`)) {
+                          deleteDebt(r.label).then(load).catch(e => showError((e as Error).message));
+                        }
+                      }}
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }}
+                    >
+                      🗑️ Elimina
+                    </button>
+                  </div>
+                )
+              },
             ]}
           />
         </section>
@@ -406,6 +526,116 @@ export default function OperationsPage() {
           />
         </section>
       </div>
+
+      {/* MODAL MODIFICA DEBITO */}
+      {editingDebt && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          padding: '1rem'
+        }}>
+          <div className="neon-panel neon-yellow" style={{ maxWidth: '480px', width: '100%', padding: '1.75rem', background: '#181828' }}>
+            <h3 style={{ marginTop: 0, color: '#fff', fontSize: '1.25rem', marginBottom: '1.25rem' }}>
+              ✏️ Modifica Debito: <span style={{ color: 'var(--yellow)' }}>{editingDebt.oldLabel}</span>
+            </h3>
+            <form onSubmit={handleSaveEditDebt}>
+              <div style={{ marginBottom: '0.9rem' }}>
+                <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
+                  Etichetta:
+                </label>
+                <input
+                  type="text"
+                  value={editingDebt.label}
+                  onChange={e => setEditingDebt({ ...editingDebt, label: e.target.value })}
+                  required
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.9rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
+                    Rata (€/mese):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editingDebt.installment}
+                    onChange={e => handleEditDebtInstallmentChange(e.target.value)}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid var(--yellow)' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
+                    Importo TOTALE (€):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editingDebt.totalAmt}
+                    onChange={e => handleEditDebtTotalChange(e.target.value)}
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid var(--yellow)' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem' }}>
+                    Durata (mesi):
+                  </label>
+                  <input
+                    type="number"
+                    value={editingDebt.duration}
+                    onChange={e => handleEditDebtDurationChange(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem' }}>
+                    Mese inizio:
+                  </label>
+                  <input
+                    type="text"
+                    value={editingDebt.startMonth}
+                    onChange={e => setEditingDebt({ ...editingDebt, startMonth: e.target.value })}
+                    required
+                    pattern="\d{4}-\d{2}"
+                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setEditingDebt(null)}
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-yellow"
+                  disabled={savingEditDebt}
+                >
+                  {savingEditDebt ? 'Salvataggio...' : '💾 Salva Modifiche'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Toast message={toast} onClose={() => setToast(null)} />
       {error && <ErrorModal title={error.title} message={error.message} onClose={() => setError(null)} />}
