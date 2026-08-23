@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 public class BudgetEngine {
@@ -31,6 +33,7 @@ public class BudgetEngine {
         Map<YearMonth, BigDecimal> flexiaByMonth = new HashMap<>();
         Map<String, BigDecimal> monthlyIncomes = new LinkedHashMap<>();
         Map<String, BigDecimal> monthlyExpenses = new LinkedHashMap<>();
+        Set<YearMonth> closedMonths = new HashSet<>();
         boolean currentMonthClosed = false;
 
         List<BudgetEvent> orderedEvents = events == null
@@ -68,11 +71,15 @@ public class BudgetEngine {
                 case DEBT_CREATED -> addDebt(event, debtPlans);
                 case DEBT_REMOVED -> debtPlans.remove(event.description());
                 case MONTHLY_CLOSE -> {
-                    currentBalance = applyMonthlyClose(
-                        currentBalance, YearMonth.parse(event.yearMonth()),
-                        ledgerEntries, subscriptions, debtPlans, flexiaByMonth,
-                        monthlyIncomes, monthlyExpenses
-                    );
+                    YearMonth closeYm = YearMonth.parse(event.yearMonth());
+                    if (!closedMonths.contains(closeYm)) {
+                        currentBalance = applyMonthlyClose(
+                            currentBalance, closeYm,
+                            ledgerEntries, subscriptions, debtPlans, flexiaByMonth,
+                            monthlyIncomes, monthlyExpenses
+                        );
+                        closedMonths.add(closeYm);
+                    }
                     currentMonthClosed = currentMonthClosed || YearMonth.now().toString().equals(event.yearMonth());
                 }
                 default -> { }

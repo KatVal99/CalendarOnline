@@ -95,8 +95,16 @@ public class BudgetController {
 
     @PostMapping("/subscriptions")
     public Map<String, String> addSubscription(@RequestBody SubscriptionRequest request, Principal principal) {
+        String username = principal.getName();
+        // Prevent duplicate subscriptions with the same label
+        boolean exists = budgetEventRepository.existsByUsernameAndTypeAndDescription(
+            username, BudgetEventType.SUBSCRIPTION_ADDED, request.label()
+        );
+        if (exists) {
+            return Map.of("status", "already_exists");
+        }
         publisher.publish(new BudgetEvent(
-            UUID.randomUUID().toString(), principal.getName(),
+            UUID.randomUUID().toString(), username,
             BudgetEventType.SUBSCRIPTION_ADDED, request.amount(), request.label(),
             LocalDate.now(), null, null, BudgetDefaults.CATEGORY_SUBSCRIPTIONS
         ));

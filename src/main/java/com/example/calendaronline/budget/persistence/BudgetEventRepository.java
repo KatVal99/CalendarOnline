@@ -39,5 +39,9 @@ public interface BudgetEventRepository extends JpaRepository<BudgetEventEntity, 
     @Transactional
     @Query("delete from BudgetEventEntity e where e.username = :username and e.type = :type")
     int deleteByUsernameAndType(String username, BudgetEventType type);
+
+    List<BudgetEventEntity> findByUsernameAndTypeAndYearMonth(String username, BudgetEventType type, String yearMonth);
+
+    boolean existsByUsernameAndTypeAndDescription(String username, BudgetEventType type, String description);
 }
 

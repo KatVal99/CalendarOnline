@@ -3,11 +3,13 @@ package com.example.calendaronline.budget.service;
 import com.example.calendaronline.budget.model.BudgetDefaults;
 import com.example.calendaronline.budget.model.BudgetEvent;
 import com.example.calendaronline.budget.model.BudgetEventType;
+import com.example.calendaronline.budget.persistence.BudgetEventEntity;
 import com.example.calendaronline.budget.persistence.BudgetEventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 
 @Service
 public class MonthlyCloseService {
@@ -31,11 +33,20 @@ public class MonthlyCloseService {
         }
 
         YearMonth month = YearMonth.from(referenceDate);
-        boolean alreadyClosed = budgetEventRepository.existsByUsernameAndTypeAndYearMonth(
-            username,
-            BudgetEventType.MONTHLY_CLOSE,
-            month.toString()
+
+        // Clean up any duplicate MONTHLY_CLOSE events for this month
+        List<BudgetEventEntity> existing = budgetEventRepository.findByUsernameAndTypeAndYearMonth(
+            username, BudgetEventType.MONTHLY_CLOSE, month.toString()
         );
+        if (existing.size() > 1) {
+            // Keep only the first one, delete the rest
+            List<String> duplicateIds = existing.subList(1, existing.size()).stream()
+                .map(BudgetEventEntity::getId)
+                .toList();
+            budgetEventRepository.deleteAllByIdIn(duplicateIds);
+        }
+
+        boolean alreadyClosed = !existing.isEmpty();
         if (alreadyClosed) {
             return false;
         }
