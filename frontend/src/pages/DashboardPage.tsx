@@ -12,6 +12,7 @@ import ErrorModal from '../components/ErrorModal';
 import CategoryCharts from '../components/CategoryCharts';
 import SavingsGoalsWidget, { SavingsGoal } from '../components/SavingsGoalsWidget';
 import CategoryLimitsWidget, { CategoryLimit } from '../components/CategoryLimitsWidget';
+import FutureSavingsSimulator from '../components/FutureSavingsSimulator';
 import { useAuth } from '../context/AuthContext';
 
 // ─── Donut Chart ──────────────────────────────────────────────────
@@ -458,6 +459,7 @@ export default function DashboardPage() {
               onSetLimit={handleSetCategoryLimit}
             />
           </div>
+          <FutureSavingsSimulator currentBalance={data.currentBalance} />
         </>
       )}
 

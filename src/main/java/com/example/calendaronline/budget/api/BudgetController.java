@@ -269,7 +269,11 @@ public class BudgetController {
 
     @GetMapping("/forecast")
     public Map<String, Object> getForecast(Principal principal) {
-        DashboardSnapshot snap = dashboard(principal);
+        String username = principal.getName();
+        List<BudgetEvent> events = budgetEventRepository.findByUsernameOrderByEventDateAscIdAsc(username).stream()
+            .map(BudgetEventMapper::toModel)
+            .toList();
+        DashboardSnapshot snap = budgetEngine.snapshot(events);
         return budgetForecastService.calculateForecast(snap);
     }
 

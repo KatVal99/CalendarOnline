@@ -86,7 +86,7 @@ public class BudgetEngine {
         List<Subscription> subscriptionList = subscriptions.values().stream().toList();
 
         List<DebtView> debts = debtPlans.values().stream()
-            .filter(plan -> plan.isActive(currentMonth))
+            .filter(plan -> plan.isListedForCurrentMonth(currentMonth))
             .map(plan -> new DebtView(
                 plan.label(), plan.startMonth().toString(), plan.endMonth().toString(),
                 plan.monthlyInstallment(), plan.remaining()
@@ -107,9 +107,18 @@ public class BudgetEngine {
     }
 
     private void addDebt(BudgetEvent event, Map<String, DebtPlan> debtPlans) {
+        YearMonth startMonth;
+        try {
+            startMonth = event.yearMonth() != null && !event.yearMonth().isBlank()
+                ? YearMonth.parse(event.yearMonth())
+                : YearMonth.from(event.eventDate() != null ? event.eventDate() : LocalDate.now());
+        } catch (Exception e) {
+            startMonth = YearMonth.from(event.eventDate() != null ? event.eventDate() : LocalDate.now());
+        }
+        int duration = event.durationMonths() != null ? event.durationMonths() : 1;
         DebtPlan plan = new DebtPlan(
             event.description(), event.amount(),
-            YearMonth.parse(event.yearMonth()), event.durationMonths()
+            startMonth, duration
         );
         debtPlans.put(event.description(), plan);
     }
@@ -142,7 +151,7 @@ public class BudgetEngine {
         }
 
         for (DebtPlan debtPlan : debtPlans.values()) {
-            if (!debtPlan.isActive(yearMonth)) {
+            if (!debtPlan.shouldChargeIn(yearMonth)) {
                 continue;
             }
             BigDecimal installment = debtPlan.applyInstallment();

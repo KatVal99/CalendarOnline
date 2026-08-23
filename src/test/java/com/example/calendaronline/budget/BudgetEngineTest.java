@@ -28,10 +28,26 @@ class BudgetEngineTest {
         );
 
         DashboardSnapshot snapshot = engine.snapshot(events);
-        assertThat(snapshot.currentBalance()).isEqualByComparingTo("880.00");
+        assertThat(snapshot.currentBalance()).isEqualByComparingTo("1880.00");
         assertThat(snapshot.flexiaByMonth()).doesNotContainKey("2026-06");
         assertThat(snapshot.debts()).hasSize(1);
-        assertThat(snapshot.debts().get(0).remaining()).isEqualByComparingTo("6000.00");
+        assertThat(snapshot.debts().get(0).remaining()).isEqualByComparingTo("1000.00");
+        assertThat(snapshot.debts().get(0).monthlyInstallment()).isEqualByComparingTo("200.00");
+    }
+
+    @Test
+    void futureDebtIsVisibleInDebtsListBeforeStartMonth() {
+        BudgetEngine engine = new BudgetEngine();
+        String nextMonth = YearMonth.now().plusMonths(1).toString();
+        List<BudgetEvent> events = List.of(
+            new BudgetEvent("1", "mario", BudgetEventType.DEBT_CREATED, new BigDecimal("600"), "Debito futuro", LocalDate.now(), nextMonth, 6, null)
+        );
+
+        DashboardSnapshot snapshot = engine.snapshot(events);
+        assertThat(snapshot.debts()).hasSize(1);
+        assertThat(snapshot.debts().get(0).label()).isEqualTo("Debito futuro");
+        assertThat(snapshot.debts().get(0).monthlyInstallment()).isEqualByComparingTo("100.00");
+        assertThat(snapshot.debts().get(0).remaining()).isEqualByComparingTo("600.00");
     }
 
     @Test
