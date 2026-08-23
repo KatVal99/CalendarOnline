@@ -96,16 +96,15 @@ public class BudgetController {
     @PostMapping("/subscriptions")
     public Map<String, String> addSubscription(@RequestBody SubscriptionRequest request, Principal principal) {
         String username = principal.getName();
-        // Prevent duplicate subscriptions with the same label
-        boolean exists = budgetEventRepository.existsByUsernameAndTypeAndDescription(
-            username, BudgetEventType.SUBSCRIPTION_ADDED, request.label()
-        );
-        if (exists) {
-            return Map.of("status", "already_exists");
+        String label = request.label() != null ? request.label().trim() : "";
+        if (label.isBlank()) {
+            return Map.of("status", "invalid_label");
         }
+        // Remove any old events for this label first to avoid duplicate events
+        budgetEventRepository.deleteSubscriptionEventsByUsernameAndLabel(username, label);
         publisher.publish(new BudgetEvent(
             UUID.randomUUID().toString(), username,
-            BudgetEventType.SUBSCRIPTION_ADDED, request.amount(), request.label(),
+            BudgetEventType.SUBSCRIPTION_ADDED, request.amount(), label,
             LocalDate.now(), null, null, BudgetDefaults.CATEGORY_SUBSCRIPTIONS
         ));
         return Map.of("status", "accepted");
@@ -113,12 +112,9 @@ public class BudgetController {
 
     @DeleteMapping("/subscriptions/{label}")
     public Map<String, String> removeSubscription(@PathVariable String label, Principal principal) {
-        publisher.publish(new BudgetEvent(
-            UUID.randomUUID().toString(), principal.getName(),
-            BudgetEventType.SUBSCRIPTION_REMOVED, null, label,
-            LocalDate.now(), null, null, BudgetDefaults.CATEGORY_SUBSCRIPTIONS
-        ));
-        return Map.of("status", "accepted");
+        String username = principal.getName();
+        budgetEventRepository.deleteSubscriptionEventsByUsernameAndLabel(username, label);
+        return Map.of("status", "deleted");
     }
 
     // --- FLEXIA ---

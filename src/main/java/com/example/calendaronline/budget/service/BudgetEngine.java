@@ -64,14 +64,36 @@ public class BudgetEngine {
                     BudgetEventType.EXPENSE, event.eventDate(),
                     monthlyIncomes, monthlyExpenses, event.eventId()
                 );
-                case SUBSCRIPTION_ADDED -> subscriptions.put(event.description(), new Subscription(event.description(), event.amount()));
-                case SUBSCRIPTION_REMOVED -> subscriptions.remove(event.description());
+                case SUBSCRIPTION_ADDED -> {
+                    String label = event.description() != null ? event.description().trim() : "";
+                    if (!label.isBlank()) {
+                        subscriptions.put(label.toLowerCase(), new Subscription(label, event.amount()));
+                    }
+                }
+                case SUBSCRIPTION_REMOVED -> {
+                    String label = event.description() != null ? event.description().trim() : "";
+                    if (!label.isBlank()) {
+                        subscriptions.remove(label.toLowerCase());
+                    }
+                }
                 case FLEXIA_SET -> flexiaByMonth.put(YearMonth.parse(event.yearMonth()), event.amount());
                 case FLEXIA_REMOVED -> flexiaByMonth.remove(YearMonth.parse(event.yearMonth()));
                 case DEBT_CREATED -> addDebt(event, debtPlans);
                 case DEBT_REMOVED -> debtPlans.remove(event.description());
                 case MONTHLY_CLOSE -> {
-                    YearMonth closeYm = YearMonth.parse(event.yearMonth());
+                    YearMonth closeYm;
+                    if (event.yearMonth() != null && !event.yearMonth().isBlank()) {
+                        try {
+                            closeYm = YearMonth.parse(event.yearMonth().trim());
+                        } catch (Exception e) {
+                            closeYm = event.eventDate() != null ? YearMonth.from(event.eventDate()) : YearMonth.now();
+                        }
+                    } else if (event.eventDate() != null) {
+                        closeYm = YearMonth.from(event.eventDate());
+                    } else {
+                        closeYm = YearMonth.now();
+                    }
+
                     if (!closedMonths.contains(closeYm)) {
                         currentBalance = applyMonthlyClose(
                             currentBalance, closeYm,
@@ -80,7 +102,7 @@ public class BudgetEngine {
                         );
                         closedMonths.add(closeYm);
                     }
-                    currentMonthClosed = currentMonthClosed || YearMonth.now().toString().equals(event.yearMonth());
+                    currentMonthClosed = currentMonthClosed || YearMonth.now().equals(closeYm);
                 }
                 default -> { }
             }
@@ -151,21 +173,35 @@ public class BudgetEngine {
         }
 
         for (Subscription subscription : subscriptions.values()) {
-            currentBalance = applyDelta(currentBalance, ledgerEntries,
-                subscription.amount().negate(), "Abbonamento " + subscription.label() + " " + yearMonth,
-                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                monthlyIncomes, monthlyExpenses, null);
+            String desc = "Abbonamento " + subscription.label() + " " + yearMonth;
+            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
+                e.source() == BudgetEventType.MONTHLY_CLOSE &&
+                desc.equalsIgnoreCase(e.description())
+            );
+            if (!alreadyInLedger) {
+                currentBalance = applyDelta(currentBalance, ledgerEntries,
+                    subscription.amount().negate(), desc,
+                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                    monthlyIncomes, monthlyExpenses, null);
+            }
         }
 
         for (DebtPlan debtPlan : debtPlans.values()) {
             if (!debtPlan.shouldChargeIn(yearMonth)) {
                 continue;
             }
-            BigDecimal installment = debtPlan.applyInstallment();
-            currentBalance = applyDelta(currentBalance, ledgerEntries,
-                installment.negate(), "Debito " + debtPlan.label() + " " + yearMonth,
-                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                monthlyIncomes, monthlyExpenses, null);
+            String desc = "Debito " + debtPlan.label() + " " + yearMonth;
+            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
+                e.source() == BudgetEventType.MONTHLY_CLOSE &&
+                desc.equalsIgnoreCase(e.description())
+            );
+            if (!alreadyInLedger) {
+                BigDecimal installment = debtPlan.applyInstallment();
+                currentBalance = applyDelta(currentBalance, ledgerEntries,
+                    installment.negate(), desc,
+                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                    monthlyIncomes, monthlyExpenses, null);
+            }
         }
 
         debtPlans.entrySet().removeIf(entry -> entry.getValue().remaining().compareTo(BigDecimal.ZERO) <= 0);
