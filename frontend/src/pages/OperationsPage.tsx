@@ -38,8 +38,9 @@ export default function OperationsPage() {
   const [expenseAmt, setExpenseAmt] = useState('');
   const [expenseCat, setExpenseCat] = useState('Alimentari');
   const [debtLabel, setDebtLabel] = useState('');
-  const [debtTotalAmt, setDebtTotalAmt] = useState('');  // totalAmount (non rata!)
-  const [debtStart, setDebtStart] = useState('');
+  const [debtInstallment, setDebtInstallment] = useState(''); // Rata mensile (€/mese)
+  const [debtTotalAmt, setDebtTotalAmt] = useState('');       // Importo totale (€)
+  const [debtStart, setDebtStart] = useState(() => new Date().toISOString().substring(0, 7));
   const [debtDuration, setDebtDuration] = useState('');
   const [flexiaMonth, setFlexiaMonth] = useState('');    // yearMonth (YYYY-MM)
   const [flexiaAmt, setFlexiaAmt] = useState('');
@@ -64,6 +65,39 @@ export default function OperationsPage() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Gestione calcolo bidirezionale Rata <-> Totale per Debito
+  const handleInstallmentChange = (val: string) => {
+    setDebtInstallment(val);
+    const inst = parseFloat(val);
+    const dur = parseInt(debtDuration, 10);
+    if (!isNaN(inst) && inst > 0 && !isNaN(dur) && dur > 0) {
+      setDebtTotalAmt((inst * dur).toFixed(2));
+    }
+  };
+
+  const handleTotalAmtChange = (val: string) => {
+    setDebtTotalAmt(val);
+    const tot = parseFloat(val);
+    const dur = parseInt(debtDuration, 10);
+    if (!isNaN(tot) && tot > 0 && !isNaN(dur) && dur > 0) {
+      setDebtInstallment((tot / dur).toFixed(2));
+    }
+  };
+
+  const handleDurationChange = (val: string) => {
+    setDebtDuration(val);
+    const dur = parseInt(val, 10);
+    if (!isNaN(dur) && dur > 0) {
+      const inst = parseFloat(debtInstallment);
+      const tot = parseFloat(debtTotalAmt);
+      if (!isNaN(inst) && inst > 0) {
+        setDebtTotalAmt((inst * dur).toFixed(2));
+      } else if (!isNaN(tot) && tot > 0) {
+        setDebtInstallment((tot / dur).toFixed(2));
+      }
+    }
+  };
 
   // Flexia: converti Map<String,BigDecimal> in array ordinato
   const flexiaArray = data
@@ -109,11 +143,22 @@ export default function OperationsPage() {
     e.preventDefault();
     setSubmittingDebt(true);
     try {
-      await createDebt(debtLabel, parseFloat(debtTotalAmt), debtStart, parseInt(debtDuration));
+      let finalTotal = parseFloat(debtTotalAmt);
+      const dur = parseInt(debtDuration, 10) || 1;
+      if (isNaN(finalTotal) || finalTotal <= 0) {
+        const inst = parseFloat(debtInstallment);
+        if (!isNaN(inst) && inst > 0) {
+          finalTotal = inst * dur;
+        } else {
+          throw new Error('Inserisci la rata mensile o il totale del debito.');
+        }
+      }
+      const start = debtStart || new Date().toISOString().substring(0, 7);
+      await createDebt(debtLabel, finalTotal, start, dur);
       showToast('Debito aggiunto ✅');
       setDebtLabel('');
+      setDebtInstallment('');
       setDebtTotalAmt('');
-      setDebtStart('');
       setDebtDuration('');
       await load();
     } catch (err) {
@@ -210,10 +255,66 @@ export default function OperationsPage() {
         <section className="neon-panel neon-yellow form-card">
           <h2>⚡ Nuovo Debito / Impegno</h2>
           <form onSubmit={addDebt}>
-            <input type="text" placeholder="Etichetta (es. Unicredit, Volo)" value={debtLabel} onChange={e => setDebtLabel(e.target.value)} required />
-            <input type="number" step="0.01" placeholder="Importo TOTALE €" value={debtTotalAmt} onChange={e => setDebtTotalAmt(e.target.value)} required />
-            <input type="text" placeholder="Mese inizio (YYYY-MM, es. 2026-08)" value={debtStart} onChange={e => setDebtStart(e.target.value)} required pattern="\d{4}-\d{2}" />
-            <input type="number" placeholder="Durata (mesi)" value={debtDuration} onChange={e => setDebtDuration(e.target.value)} required />
+            <input
+              type="text"
+              placeholder="Etichetta (es. Unicredit, Volo)"
+              value={debtLabel}
+              onChange={e => setDebtLabel(e.target.value)}
+              required
+            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.2rem', fontWeight: 'bold' }}>
+                  Rata (€/mese):
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="es. 117.30"
+                  value={debtInstallment}
+                  onChange={e => handleInstallmentChange(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.2rem', fontWeight: 'bold' }}>
+                  Importo TOTALE (€):
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="es. 10439.70"
+                  value={debtTotalAmt}
+                  onChange={e => handleTotalAmtChange(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: '#bbb', display: 'block', marginBottom: '0.2rem' }}>
+                  Durata (mesi):
+                </label>
+                <input
+                  type="number"
+                  placeholder="es. 89"
+                  value={debtDuration}
+                  onChange={e => handleDurationChange(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: '#bbb', display: 'block', marginBottom: '0.2rem' }}>
+                  Mese inizio:
+                </label>
+                <input
+                  type="text"
+                  placeholder="YYYY-MM (es. 2026-06)"
+                  value={debtStart}
+                  onChange={e => setDebtStart(e.target.value)}
+                  required
+                  pattern="\d{4}-\d{2}"
+                />
+              </div>
+            </div>
             <button className="btn btn-yellow" type="submit" disabled={submittingDebt}>
               {submittingDebt ? '⏳ Salvataggio...' : '+ Aggiungi Debito'}
             </button>
@@ -270,7 +371,11 @@ export default function OperationsPage() {
               { header: 'Inizio', render: (r: DebtView) => <span style={{ fontSize: '0.85rem', color: '#bbb' }}>{r.startMonth}</span> },
               { header: 'Fine', render: (r: DebtView) => <span style={{ fontSize: '0.85rem', color: '#bbb' }}>{r.endMonth}</span> },
               { header: 'Residuo', render: (r: DebtView) => <span style={{ color: '#fff', fontWeight: 'bold' }}>{formatCurrency(r.remaining)}</span> },
-              { header: '', render: (r: DebtView) => <button className="btn btn-small btn-danger" onClick={() => deleteDebt(r.label).then(load).catch(e => showError((e as Error).message))}>✕</button> },
+              { header: '', render: (r: DebtView) => <button className="btn btn-small btn-danger" title="Elimina debito" onClick={() => {
+                if (confirm(`Eliminare il debito "${r.label}"?`)) {
+                  deleteDebt(r.label).then(load).catch(e => showError((e as Error).message));
+                }
+              }}>🗑️ Elimina</button> },
             ]}
           />
         </section>
