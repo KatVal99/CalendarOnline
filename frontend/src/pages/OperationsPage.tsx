@@ -352,68 +352,83 @@ export default function OperationsPage() {
 
         <section className="neon-panel neon-yellow form-card">
           <h2>⚡ Nuovo Debito / Impegno</h2>
-          <form onSubmit={addDebt}>
+          <form onSubmit={addDebt} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <input
               type="text"
               placeholder="Etichetta (es. Unicredit, Volo)"
               value={debtLabel}
               onChange={e => setDebtLabel(e.target.value)}
               required
+              style={{ width: '100%' }}
             />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.2rem', fontWeight: 'bold' }}>
-                  Rata (€/mese):
+
+            {/* Riga 1: Rata + Totale */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', alignItems: 'start' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.78rem', color: 'var(--yellow)', fontWeight: 700, letterSpacing: '0.3px' }}>
+                  💵 Rata mensile (€)
                 </label>
                 <input
                   type="number"
                   step="0.01"
-                  placeholder="es. 117.30"
+                  placeholder="117.30"
                   value={debtInstallment}
                   onChange={e => handleInstallmentChange(e.target.value)}
+                  style={{ width: '100%' }}
                 />
               </div>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.2rem', fontWeight: 'bold' }}>
-                  Importo TOTALE (€):
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.78rem', color: 'var(--yellow)', fontWeight: 700, letterSpacing: '0.3px' }}>
+                  💰 Importo Totale (€)
                 </label>
                 <input
                   type="number"
                   step="0.01"
-                  placeholder="es. 10439.70"
+                  placeholder="10439.70"
                   value={debtTotalAmt}
                   onChange={e => handleTotalAmtChange(e.target.value)}
+                  style={{ width: '100%' }}
                 />
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#bbb', display: 'block', marginBottom: '0.2rem' }}>
-                  Durata (mesi):
+
+            {/* Hint per calcolo automatico */}
+            <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '-0.5rem', fontStyle: 'italic', textAlign: 'center' }}>
+              Compila Rata o Totale + Durata → l'altro si calcola automaticamente
+            </div>
+
+            {/* Riga 2: Durata + Mese inizio */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', alignItems: 'start' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.78rem', color: '#ccc', fontWeight: 600 }}>
+                  📅 Durata (mesi)
                 </label>
                 <input
                   type="number"
-                  placeholder="es. 89"
+                  placeholder="89"
                   value={debtDuration}
                   onChange={e => handleDurationChange(e.target.value)}
                   required
+                  style={{ width: '100%' }}
                 />
               </div>
-              <div>
-                <label style={{ fontSize: '0.75rem', color: '#bbb', display: 'block', marginBottom: '0.2rem' }}>
-                  Mese inizio:
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.78rem', color: '#ccc', fontWeight: 600 }}>
+                  🗓️ Mese inizio
                 </label>
                 <input
                   type="text"
-                  placeholder="YYYY-MM (es. 2026-06)"
+                  placeholder="2026-06"
                   value={debtStart}
                   onChange={e => setDebtStart(e.target.value)}
                   required
                   pattern="\d{4}-\d{2}"
+                  style={{ width: '100%' }}
                 />
               </div>
             </div>
-            <button className="btn btn-yellow" type="submit" disabled={submittingDebt}>
+
+            <button className="btn btn-yellow" type="submit" disabled={submittingDebt} style={{ marginTop: '0.3rem' }}>
               {submittingDebt ? '⏳ Salvataggio...' : '+ Aggiungi Debito'}
             </button>
           </form>
@@ -542,67 +557,71 @@ export default function OperationsPage() {
           zIndex: 1000,
           padding: '1rem'
         }}>
-          <div className="neon-panel neon-yellow" style={{ maxWidth: '480px', width: '100%', padding: '1.75rem', background: '#181828' }}>
-            <h3 style={{ marginTop: 0, color: '#fff', fontSize: '1.25rem', marginBottom: '1.25rem' }}>
+          <div className="neon-panel neon-yellow" style={{ maxWidth: '480px', width: '100%', padding: '1.75rem', background: '#181828', borderRadius: '16px' }}>
+            <h3 style={{ marginTop: 0, color: '#fff', fontSize: '1.15rem', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.6rem' }}>
               ✏️ Modifica Debito: <span style={{ color: 'var(--yellow)' }}>{editingDebt.oldLabel}</span>
             </h3>
-            <form onSubmit={handleSaveEditDebt}>
-              <div style={{ marginBottom: '0.9rem' }}>
-                <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
-                  Etichetta:
+            <form onSubmit={handleSaveEditDebt} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <label style={{ fontSize: '0.78rem', color: '#ccc', fontWeight: 600 }}>
+                  🏷️ Etichetta
                 </label>
                 <input
                   type="text"
                   value={editingDebt.label}
                   onChange={e => setEditingDebt({ ...editingDebt, label: e.target.value })}
                   required
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                  style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.92rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.25s ease, box-shadow 0.25s ease' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.9rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
-                    Rata (€/mese):
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', alignItems: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--yellow)', fontWeight: 700, letterSpacing: '0.3px' }}>
+                    💵 Rata mensile (€)
                   </label>
                   <input
                     type="number"
                     step="0.01"
                     value={editingDebt.installment}
                     onChange={e => handleEditDebtInstallmentChange(e.target.value)}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid var(--yellow)' }}
+                    style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid rgba(255,215,0,0.35)', fontSize: '0.92rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.25s ease, box-shadow 0.25s ease' }}
                   />
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--yellow)', display: 'block', marginBottom: '0.3rem', fontWeight: 'bold' }}>
-                    Importo TOTALE (€):
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--yellow)', fontWeight: 700, letterSpacing: '0.3px' }}>
+                    💰 Importo Totale (€)
                   </label>
                   <input
                     type="number"
                     step="0.01"
                     value={editingDebt.totalAmt}
                     onChange={e => handleEditDebtTotalChange(e.target.value)}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid var(--yellow)' }}
+                    style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid rgba(255,215,0,0.35)', fontSize: '0.92rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.25s ease, box-shadow 0.25s ease' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem' }}>
-                    Durata (mesi):
+              <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '-0.4rem', fontStyle: 'italic', textAlign: 'center' }}>
+                Compila Rata o Totale + Durata → l'altro si calcola automaticamente
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', alignItems: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.78rem', color: '#ccc', fontWeight: 600 }}>
+                    📅 Durata (mesi)
                   </label>
                   <input
                     type="number"
                     value={editingDebt.duration}
                     onChange={e => handleEditDebtDurationChange(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                    style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.92rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.25s ease, box-shadow 0.25s ease' }}
                   />
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#ccc', display: 'block', marginBottom: '0.3rem' }}>
-                    Mese inizio:
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.78rem', color: '#ccc', fontWeight: 600 }}>
+                    🗓️ Mese inizio
                   </label>
                   <input
                     type="text"
@@ -610,17 +629,17 @@ export default function OperationsPage() {
                     onChange={e => setEditingDebt({ ...editingDebt, startMonth: e.target.value })}
                     required
                     pattern="\d{4}-\d{2}"
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#0e0e1a', color: '#fff', border: '1px solid #444' }}
+                    style={{ width: '100%', padding: '0.7rem 0.9rem', borderRadius: '10px', background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.92rem', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.25s ease, box-shadow 0.25s ease' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.4rem' }}>
                 <button
                   type="button"
                   className="btn"
                   onClick={() => setEditingDebt(null)}
-                  style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px' }}
                 >
                   Annulla
                 </button>
@@ -628,6 +647,7 @@ export default function OperationsPage() {
                   type="submit"
                   className="btn btn-yellow"
                   disabled={savingEditDebt}
+                  style={{ borderRadius: '10px' }}
                 >
                   {savingEditDebt ? 'Salvataggio...' : '💾 Salva Modifiche'}
                 </button>
