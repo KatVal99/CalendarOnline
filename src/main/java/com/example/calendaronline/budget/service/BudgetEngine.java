@@ -160,51 +160,46 @@ public class BudgetEngine {
                                          Map<YearMonth, BigDecimal> flexiaByMonth,
                                          Map<String, BigDecimal> monthlyIncomes,
                                          Map<String, BigDecimal> monthlyExpenses) {
+        // --- Flexia (solo per il mese esatto) ---
         BigDecimal flexiaAmount = flexiaByMonth.remove(yearMonth);
         if (flexiaAmount != null && flexiaAmount.compareTo(BigDecimal.ZERO) > 0) {
-            String desc = "Flexia " + yearMonth;
-            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
-                e.source() == BudgetEventType.MONTHLY_CLOSE &&
-                desc.equalsIgnoreCase(e.description())
-            );
-            if (!alreadyInLedger) {
-                currentBalance = applyDelta(currentBalance, ledgerEntries,
-                    flexiaAmount.negate(), desc,
-                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                    monthlyIncomes, monthlyExpenses, null);
-            }
+            currentBalance = applyDelta(currentBalance, ledgerEntries,
+                flexiaAmount.negate(), "Flexia " + yearMonth,
+                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                monthlyIncomes, monthlyExpenses, null);
         }
 
-        for (Subscription subscription : subscriptions.values()) {
-            String desc = "Abbonamento " + subscription.label() + " " + yearMonth;
-            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
-                e.source() == BudgetEventType.MONTHLY_CLOSE &&
-                desc.equalsIgnoreCase(e.description())
-            );
-            if (!alreadyInLedger) {
-                currentBalance = applyDelta(currentBalance, ledgerEntries,
-                    subscription.amount().negate(), desc,
-                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                    monthlyIncomes, monthlyExpenses, null);
-            }
+        // --- Abbonamenti: una sola riga col totale ---
+        BigDecimal subTotal = subscriptions.values().stream()
+            .map(Subscription::amount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (subTotal.compareTo(BigDecimal.ZERO) > 0) {
+            String subNames = subscriptions.values().stream()
+                .map(Subscription::label)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+            currentBalance = applyDelta(currentBalance, ledgerEntries,
+                subTotal.negate(), "Abbonamenti " + yearMonth + " (" + subNames + ")",
+                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                monthlyIncomes, monthlyExpenses, null);
         }
 
+        // --- Debiti: una sola riga col totale rate ---
+        BigDecimal debtTotal = BigDecimal.ZERO;
+        List<String> debtNames = new ArrayList<>();
         for (DebtPlan debtPlan : debtPlans.values()) {
             if (!debtPlan.shouldChargeIn(yearMonth)) {
                 continue;
             }
-            String desc = "Debito " + debtPlan.label() + " " + yearMonth;
-            boolean alreadyInLedger = ledgerEntries.stream().anyMatch(e ->
-                e.source() == BudgetEventType.MONTHLY_CLOSE &&
-                desc.equalsIgnoreCase(e.description())
-            );
-            if (!alreadyInLedger) {
-                BigDecimal installment = debtPlan.applyInstallment();
-                currentBalance = applyDelta(currentBalance, ledgerEntries,
-                    installment.negate(), desc,
-                    BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
-                    monthlyIncomes, monthlyExpenses, null);
-            }
+            BigDecimal installment = debtPlan.applyInstallment();
+            debtTotal = debtTotal.add(installment);
+            debtNames.add(debtPlan.label());
+        }
+        if (debtTotal.compareTo(BigDecimal.ZERO) > 0) {
+            currentBalance = applyDelta(currentBalance, ledgerEntries,
+                debtTotal.negate(), "Rate debiti " + yearMonth + " (" + String.join(", ", debtNames) + ")",
+                BudgetEventType.MONTHLY_CLOSE, yearMonth.atDay(1),
+                monthlyIncomes, monthlyExpenses, null);
         }
 
         debtPlans.entrySet().removeIf(entry -> entry.getValue().remaining().compareTo(BigDecimal.ZERO) <= 0);
