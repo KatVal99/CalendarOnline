@@ -180,6 +180,8 @@ export const updateSavingsGoalTransaction = (goalId: string, txId: string, amoun
 export const fetchCategoryLimits = () => getJson<CategoryLimit[]>('/budget/category-limits');
 export const setCategoryLimit = (category: string, monthlyLimit: number) =>
   postJson<CategoryLimit>('/budget/category-limits', { category, monthlyLimit });
+export const deleteCategoryLimit = (category: string) =>
+  deleteRequest<{ status: string }>(`/budget/category-limits/${encodeURIComponent(category)}`);
 export const fetchCategorySummary = () => getJson<CategorySummary>('/budget/categories/summary');
 
 // ---- CASHFLOW FORECAST ----

@@ -10,13 +10,14 @@ interface Props {
   expensesByCategory: Record<string, number>;
   limits: CategoryLimit[];
   onSetLimit: (category: string, monthlyLimit: number) => Promise<void>;
+  onDeleteLimit?: (category: string) => Promise<void>;
 }
 
 const DEFAULT_CATEGORIES = [
   'Alimentari', 'Svago', 'Bollette', 'Casa', 'Trasporti', 'Salute', 'Abbonamenti', 'Altro'
 ];
 
-export default function CategoryLimitsWidget({ expensesByCategory, limits, onSetLimit }: Props) {
+export default function CategoryLimitsWidget({ expensesByCategory, limits, onSetLimit, onDeleteLimit }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('Alimentari');
   const [limitInput, setLimitInput] = useState('');
 
@@ -72,15 +73,28 @@ export default function CategoryLimitsWidget({ expensesByCategory, limits, onSet
 
             return (
               <div key={category} style={{ background: '#252538', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #444' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', gap: '0.5rem' }}>
                   <span style={{ fontWeight: 'bold', color: '#fff' }}>{category}</span>
-                  <span style={{
-                    color: isExceeded ? '#ff6b6b' : isWarning ? '#ffd166' : '#06d6a0',
-                    fontSize: '0.85rem',
-                    fontWeight: 'bold'
-                  }}>
-                    € {currentSpent.toFixed(2)} / € {limitVal.toFixed(2)} ({percent}%)
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{
+                      color: isExceeded ? '#ff6b6b' : isWarning ? '#ffd166' : '#06d6a0',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold'
+                    }}>
+                      € {currentSpent.toFixed(2)} / € {limitVal.toFixed(2)} ({percent}%)
+                    </span>
+                    {onDeleteLimit && (
+                      <button
+                        type="button"
+                        className="btn btn-small btn-danger"
+                        style={{ padding: '0.2rem 0.45rem', fontSize: '0.75rem', lineHeight: '1' }}
+                        onClick={() => onDeleteLimit(category)}
+                        title={`Elimina tetto di spesa per ${category}`}
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div style={{ width: '100%', height: '8px', background: '#444', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{

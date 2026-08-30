@@ -270,6 +270,14 @@ public class BudgetController {
         return categoryLimitRepository.save(limit);
     }
 
+    @DeleteMapping("/category-limits/{category}")
+    public Map<String, String> deleteCategoryLimit(@PathVariable String category, Principal principal) {
+        String username = principal.getName();
+        categoryLimitRepository.findByUsernameAndCategory(username, category)
+            .ifPresent(categoryLimitRepository::delete);
+        return Map.of("status", "deleted");
+    }
+
     // --- CATEGORY SUMMARY ---
 
     @GetMapping("/categories/summary")

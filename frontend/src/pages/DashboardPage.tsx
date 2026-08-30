@@ -3,7 +3,7 @@ import { CalendarEvent, DashboardData, LedgerEntry } from '../types';
 import {
   fetchCalendarEvents, fetchDashboard, deleteIncome, deleteExpense, deleteMonthlyClose,
   fetchCategorySummary, fetchSavingsGoals, createSavingsGoal, updateSavingsGoal, deleteSavingsGoal, depositSavingsGoal,
-  fetchCategoryLimits, setCategoryLimit, fetchForecast
+  fetchCategoryLimits, setCategoryLimit, deleteCategoryLimit, fetchForecast
 } from '../api/client';
 import CalendarWidget from '../components/CalendarWidget';
 import PaginatedTable from '../components/PaginatedTable';
@@ -262,6 +262,16 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteCategoryLimit = async (category: string) => {
+    try {
+      await deleteCategoryLimit(category);
+      showToast(`Tetto spesa per ${category} eliminato! 🗑️`);
+      load();
+    } catch (e) {
+      showError((e as Error).message);
+    }
+  };
+
   useEffect(() => { load(); }, [load]);
 
   const loadCalendarTask = useCallback(async () => {
@@ -457,6 +467,7 @@ export default function DashboardPage() {
               expensesByCategory={expensesByCategory}
               limits={categoryLimits}
               onSetLimit={handleSetCategoryLimit}
+              onDeleteLimit={handleDeleteCategoryLimit}
             />
           </div>
           <FutureSavingsSimulator currentBalance={data.currentBalance} />
