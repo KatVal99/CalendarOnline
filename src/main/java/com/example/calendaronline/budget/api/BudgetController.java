@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -257,24 +259,36 @@ public class BudgetController {
 
     @GetMapping("/category-limits")
     public List<CategoryLimitEntity> getCategoryLimits(Principal principal) {
-        return categoryLimitRepository.findByUsername(principal.getName());
+        List<CategoryLimitEntity> all = categoryLimitRepository.findByUsername(principal.getName());
+        Map<String, CategoryLimitEntity> map = new LinkedHashMap<>();
+        for (CategoryLimitEntity entity : all) {
+            map.put(entity.getCategory(), entity);
+        }
+        return new ArrayList<>(map.values());
     }
 
     @PostMapping("/category-limits")
     public CategoryLimitEntity setCategoryLimit(@Valid @RequestBody CategoryLimitRequest request, Principal principal) {
         String username = principal.getName();
-        CategoryLimitEntity limit = categoryLimitRepository.findByUsernameAndCategory(username, request.category())
-            .orElseGet(() -> new CategoryLimitEntity(username, request.category(), request.monthlyLimit()));
-        limit.setMonthlyLimit(request.monthlyLimit());
-        limit.setUpdatedAt(LocalDateTime.now());
+        List<CategoryLimitEntity> existing = categoryLimitRepository.findAllByUsernameAndCategory(username, request.category());
+        CategoryLimitEntity limit;
+        if (existing.isEmpty()) {
+            limit = new CategoryLimitEntity(username, request.category(), request.monthlyLimit());
+        } else {
+            limit = existing.get(0);
+            limit.setMonthlyLimit(request.monthlyLimit());
+            limit.setUpdatedAt(LocalDateTime.now());
+            if (existing.size() > 1) {
+                categoryLimitRepository.deleteAll(existing.subList(1, existing.size()));
+            }
+        }
         return categoryLimitRepository.save(limit);
     }
 
     @DeleteMapping("/category-limits/{category}")
     public Map<String, String> deleteCategoryLimit(@PathVariable String category, Principal principal) {
         String username = principal.getName();
-        categoryLimitRepository.findByUsernameAndCategory(username, category)
-            .ifPresent(categoryLimitRepository::delete);
+        categoryLimitRepository.deleteByUsernameAndCategory(username, category);
         return Map.of("status", "deleted");
     }
 
