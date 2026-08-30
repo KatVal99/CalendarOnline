@@ -23,21 +23,22 @@ function formatMonthName(yearMonth: string): string {
 }
 
 export default function FutureSavingsSimulator({ currentBalance }: Props) {
-  const currentYearMonth = useMemo(() => {
+  const nextYearMonth = useMemo(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
   }, []);
 
   // Mese di destinazione (target month) fino al quale calcolare la proiezione
   const [targetMonth, setTargetMonth] = useState<string>(() => {
     const saved = localStorage.getItem('sim_target_month');
-    if (saved && saved >= currentYearMonth) return saved;
-    // Default: Dicembre dell'anno corrente o +4 mesi
+    if (saved && saved >= nextYearMonth) return saved;
+    // Default: Dicembre dell'anno corrente o Dicembre dell'anno successivo
     const now = new Date();
     const dec = `${now.getFullYear()}-12`;
-    if (dec >= currentYearMonth) return dec;
-    const next4 = new Date(now.getFullYear(), now.getMonth() + 4, 1);
-    return `${next4.getFullYear()}-${String(next4.getMonth() + 1).padStart(2, '0')}`;
+    if (dec >= nextYearMonth) return dec;
+    const nextDec = `${now.getFullYear() + 1}-12`;
+    return nextDec;
   });
 
   // Quota mensile fissa da mettere da parte (default 1000 o salvato)
@@ -76,25 +77,25 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
     localStorage.setItem('sim_planned_expenses', JSON.stringify(plannedExpenses));
   }, [plannedExpenses]);
 
-  // Genera elenco opzioni mesi futuri selezionabili (da mese corrente a +24 mesi)
+  // Genera elenco opzioni mesi futuri selezionabili (da mese successivo a +24 mesi)
   const availableTargetMonths = useMemo(() => {
     const list: string[] = [];
     const now = new Date();
-    for (let i = 0; i <= 24; i++) {
+    for (let i = 1; i <= 24; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       list.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
     return list;
   }, []);
 
-  // Genera tutti i mesi compresi tra il mese corrente e il mese target
+  // Genera tutti i mesi compresi tra il mese successivo e il mese target
   const projectionMonths = useMemo(() => {
     const months: string[] = [];
     const now = new Date();
     const [tYear, tMonth] = targetMonth.split('-').map(Number);
     const targetDate = new Date(tYear, tMonth - 1, 1);
 
-    let iter = new Date(now.getFullYear(), now.getMonth(), 1);
+    let iter = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     while (iter <= targetDate) {
       const ym = `${iter.getFullYear()}-${String(iter.getMonth() + 1).padStart(2, '0')}`;
       months.push(ym);
@@ -102,14 +103,14 @@ export default function FutureSavingsSimulator({ currentBalance }: Props) {
     }
 
     if (months.length === 0) {
-      months.push(currentYearMonth);
+      months.push(nextYearMonth);
     }
     return months;
-  }, [targetMonth, currentYearMonth]);
+  }, [targetMonth, nextYearMonth]);
 
   // Imposta mese default per il form di aggiunta spesa
   useEffect(() => {
-    if (!newMonth && projectionMonths.length > 0) {
+    if ((!newMonth || !projectionMonths.includes(newMonth)) && projectionMonths.length > 0) {
       setNewMonth(projectionMonths[0]);
     }
   }, [projectionMonths, newMonth]);
