@@ -470,7 +470,12 @@ export default function DashboardPage() {
               onDeleteLimit={handleDeleteCategoryLimit}
             />
           </div>
-          <FutureSavingsSimulator currentBalance={data.currentBalance} />
+          <FutureSavingsSimulator
+            currentBalance={data.currentBalance}
+            subscriptionsTotal={data.monthlySubscriptionsTotal}
+            debtTotal={computeDebtTotal(data)}
+            spendingLimitsTotal={categoryLimits.reduce((sum, l) => sum + l.monthlyLimit, 0)}
+          />
         </>
       )}
 
